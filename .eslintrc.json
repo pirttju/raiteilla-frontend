@@ -1,12 +1,14 @@
 {
     "env": {
         "browser": true,
-        "es2021": true
+        "es2021": true,
+        "jest": true
     },
     "extends": [
         "eslint:recommended",
         "plugin:react/recommended",
-        "plugin:@typescript-eslint/recommended"
+        "plugin:@typescript-eslint/recommended",
+        "prettier"
     ],
     "overrides": [
     ],
@@ -17,8 +19,20 @@
     },
     "plugins": [
         "react",
-        "@typescript-eslint"
+        "react-hooks",
+        "@typescript-eslint",
+        "prettier"
     ],
     "rules": {
+        "react/react-in-jsx-scope": "off",
+        "quotes": [
+            "error",
+            "double"
+        ]
+    },
+    "settings": {
+        "import/resolver": {
+            "typescript": {}
+        }
     }
 }
