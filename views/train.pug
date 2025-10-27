@@ -94,8 +94,8 @@ block scripts
           const train = result.data[0];
 
           const displayNumber = country === 'gb' && train.headcode ? train.headcode : train.train_number;
-          trainTitle.innerText = `${window.i18n.scheduleForTrain || 'Schedule for Train'} ${train.train_type} ${displayNumber}`;
-          trainSummary.innerText = `${train.origin_name} — ${train.destination_name} | ${window.i18n.operator || 'Operator'}: ${train.company}`;
+          trainTitle.innerText = `${window.i18n.scheduleForTrain} ${train.train_type} ${displayNumber}`;
+          trainSummary.innerText = `${train.origin_name} — ${train.destination_name} | ${window.i18n.operator}: ${train.company}`;
 
           train.schedule.forEach(stop => {
             if (!stop.commercial_stop) return;

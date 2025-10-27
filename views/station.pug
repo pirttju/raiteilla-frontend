@@ -2,8 +2,8 @@ extends layout
 
 block content
   //- Use data attributes to pass server-side variables to client-side script
-  h1#station-title(data-country=country data-station=station) #{t('Timetable for')} #{station}
-  
+  h1#station-title(data-country=country data-station=station data-date=date) #{t('timetableFor')} #{station}
+  div#station-details.station-meta
   table
     thead
       tr
@@ -23,75 +23,53 @@ block scripts
   script.
     document.addEventListener('DOMContentLoaded', async () => {
       const stationTitle = document.getElementById('station-title');
-      const country = stationTitle.dataset.country;
-      const stationCode = stationTitle.dataset.station;
+      const detailsContainer = document.getElementById('station-details');
+      const { country, station: stationCode, date } = stationTitle.dataset;
+      
       const timetableBody = document.getElementById('timetable-body');
       const noTrainsMessage = document.getElementById('no-trains-message');
 
-      // Map country codes to IANA timezone names
-      const timezoneMap = {
-        fi: 'Europe/Helsinki',
-        se: 'Europe/Stockholm',
-        no: 'Europe/Oslo',
-        gb: 'Europe/London'
-      };
-      const timezone = timezoneMap[country] || 'UTC'; // Fallback to UTC if country is unknown
+      const timetableApiUrl = `/train-api/v1/stations/${country}/${stationCode}/${date}`;
+      const stationInfoApiUrl = `/train-api/v1/stations/${country}/${stationCode}`;
 
-      const today = new Date().toISOString().slice(0, 10);
-      const apiUrl = `/train-api/v1/stations/${country}/${stationCode}/${today}`;
-
-      const formatTime = (isoString, tz) => {
-        if (!isoString) return '—';
-        return new Date(isoString).toLocaleTimeString(navigator.language, {
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZone: tz // Use the provided timezone
-        });
-      };
-
-      const displayTime = (scheduled, estimated, actual, tz) => {
-        if (!scheduled) return '—';
-        const scheduledTime = formatTime(scheduled, tz);
-
-        if (actual) {
-          const actualTime = formatTime(actual, tz);
-          if (actualTime !== scheduledTime) {
-            return `<span class="actual">${actualTime}</span><br><s class="scheduled">${scheduledTime}</s>`;
-          }
-          return `<span class="actual">${actualTime}</span>`;
-        }
-
-        if (estimated) {
-          const estimatedTime = formatTime(estimated, tz);
-          if (estimatedTime !== scheduledTime) {
-            return `<span class="estimated">${estimatedTime}</span><br><s class="scheduled">${scheduledTime}</s>`;
-          }
-        }
-        
-        return `<span>${scheduledTime}</span>`;
-      };
-
-      const getStatus = (scheduled, estimated, actual, cancelled) => {
-        // This function doesn't format time, so it needs no change
-        if (cancelled) return `<span class="status-cancelled">${window.i18n.cancelled}</span>`;
-        if (!scheduled) return '';
-        const finalTime = actual || estimated;
-        if (!finalTime) return `<span class="status-ontime">${window.i18n.onTime}</span>`;
-        const delay = Math.round((new Date(finalTime) - new Date(scheduled)) / 60000);
-        if (delay > 0) {
-          return `<span class="status-delayed">${window.i18n.delayed} ${delay} ${window.i18n.minutes}</span>`;
-        }
-        return `<span class="status-ontime">${window.i18n.onTime}</span>`;
-      };
+      const timezoneMap = { fi: 'Europe/Helsinki', se: 'Europe/Stockholm', no: 'Europe/Oslo', gb: 'Europe/London' };
+      const timezone = timezoneMap[country] || 'UTC';
+      const formatTime = (isoString, tz) => { if (!isoString) return '—'; return new Date(isoString).toLocaleTimeString(navigator.language, { hour: '2-digit', minute: '2-digit', timeZone: tz }); };
+      const displayTime = (scheduled, estimated, actual, tz) => { if (!scheduled) return '—'; const scheduledTime = formatTime(scheduled, tz); if (actual) { const actualTime = formatTime(actual, tz); if (actualTime !== scheduledTime) { return `<span class="actual">${actualTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } return `<span class="actual">${actualTime}</span>`; } if (estimated) { const estimatedTime = formatTime(estimated, tz); if (estimatedTime !== scheduledTime) { return `<span class="estimated">${estimatedTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } } return `<span>${scheduledTime}</span>`; };
+      const getStatus = (scheduled, estimated, actual, cancelled) => { if (cancelled) return `<span class="status-cancelled">${window.i18n.cancelled}</span>`; if (!scheduled) return ''; const finalTime = actual || estimated; if (!finalTime) return `<span class="status-ontime">${window.i18n.onTime}</span>`; const delay = Math.round((new Date(finalTime) - new Date(scheduled)) / 60000); if (delay > 0) { return `<span class="status-delayed">${window.i18n.delayed} ${delay} ${window.i18n.minutes}</span>`; } return `<span class="status-ontime">${window.i18n.onTime}</span>`; };
 
       try {
-        const response = await fetch(apiUrl);
-        const result = await response.json();
+        // Fetch timetable and station info in parallel
+        const [timetableResponse, stationInfoResponse] = await Promise.all([
+          fetch(timetableApiUrl).then(res => res.json()),
+          fetch(stationInfoApiUrl).then(res => res.json())
+        ]);
 
-        if (result.success && result.data.length > 0) {
-          result.data.forEach(train => {
+        if (stationInfoResponse.success && stationInfoResponse.data) {
+          const stationInfo = stationInfoResponse.data;
+
+          const codeInBrackets = stationInfo.commercial_code || stationInfo.station;
+          const newTitle = `${window.i18n.timetableFor} ${stationInfo.name} (${codeInBrackets})`;
+
+          stationTitle.innerText = newTitle;
+          document.title = newTitle;
+
+          const detailsParts = [];
+
+          if (stationInfo.country_code && stationInfo.primary_code) {
+            detailsParts.push(`<strong>${window.i18n.stationIdentifier}:</strong> ${stationInfo.country_code}${stationInfo.primary_code}`);
+          }
+
+          if (stationInfo.km_m) {
+            detailsParts.push(`<strong>${window.i18n.kilometerMarker}:</strong> ${stationInfo.km_m}`);
+          }
+
+          detailsContainer.innerHTML = detailsParts.join(' | ');
+        }
+
+        if (timetableResponse.success && timetableResponse.data.length > 0) {
+          timetableResponse.data.forEach(train => {
             const row = document.createElement('tr');
-            
             const displayNumber = country === 'gb' && train.headcode ? train.headcode : train.train_number;
             const arrivalDisplay = displayTime(train.arrival, train.estimated_arrival, train.actual_arrival, timezone);
             const departureDisplay = displayTime(train.departure, train.estimated_departure, train.actual_departure, timezone);
@@ -114,6 +92,7 @@ block scripts
         }
       } catch (error) {
         console.error('Failed to fetch station data:', error);
-        timetableBody.innerHTML = '<tr><td colspan="7">Error loading data.</td></tr>';
+        stationTitle.innerText = 'Error loading data';
+        timetableBody.innerHTML = '<tr><td colspan="7">Error loading timetable.</td></tr>';
       }
     });

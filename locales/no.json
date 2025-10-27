@@ -7,9 +7,9 @@
   "Timetable for": "Tidtabell for",
   "Origin": "Opprinnelse",
   "Destination": "Destinasjon",
-  "Ankomst": "Ankomst",
-  "Avgang": "Avgang",
-  "Plattform": "Plattform",
+  "Arrival": "Ankomst",
+  "Departure": "Avgang",
+  "Platform": "Plattform",
   "Status": "Status",
   "No trains scheduled today.": "Ingen tog planlagt i dag.",
   "Schedule for Train": "Tidtabell for Tog",
@@ -28,5 +28,8 @@
   "Finland": "Finland",
   "Sweden": "Sverige",
   "Norway": "Norge",
-  "Great Britain": "Storbritannia"
+  "Great Britain": "Storbritannia",
+  "kilometerMarker": "Bane kilometer",
+  "timetableFor": "Tidtabell for",
+  "stationIdentifier": "Primær lokasjonskode"
 }

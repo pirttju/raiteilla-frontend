@@ -171,3 +171,11 @@ a.nav-link:hover {
     columns: 1;
   }
 }
+
+.station-meta {
+  color: #555;
+  font-size: 0.9em;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}

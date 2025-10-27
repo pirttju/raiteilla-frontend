@@ -9,12 +9,12 @@
   "Destination": "Destination",
   "Arrival": "Ankomst",
   "Departure": "Avgång",
-  "Spår": "Spår",
+  "Platform": "Spår",
   "Status": "Status",
   "No trains scheduled today.": "Inga tåg planerade idag.",
   "Schedule for Train": "Tidtabell för Tåg",
   "Operator": "Operatör",
-  "Inställt": "Inställt",
+  "Cancelled": "Inställt",
   "On time": "I tid",
   "Delayed": "Försenad",
   "minutes": "minuter",
@@ -28,5 +28,8 @@
   "Finland": "Finland",
   "Sweden": "Sverige",
   "Norway": "Norge",
-  "Great Britain": "Storbritannien"
+  "Great Britain": "Storbritannien",
+  "kilometerMarker": "Spårkilometer",
+  "timetableFor": "Tidtabell för",
+  "stationIdentifier": "Primär platskod"
 }

@@ -8,5 +8,5 @@ block content
   #map
 
 block scripts
-  script(src='/js/main.js')
-  script(src='/js/map.js')
+  script(src=`/js/main.js?v=${cacheBuster}`)
+  script(src=`/js/map.js?v=${cacheBuster}`)

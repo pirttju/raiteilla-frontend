@@ -55,9 +55,18 @@ app.use((req, res, next) => {
     onTime: req.t("On time"),
     delayed: req.t("Delayed"),
     minutes: req.t("minutes"),
-    scheduleForTrain: req.t("Schedule for Train"),
     operator: req.t("Operator"),
+    scheduleForTrain: req.t("Schedule for Train"),
+    timetableFor: req.t("timetableFor"),
+    kilometerMarker: req.t("kilometerMarker"),
+    stationIdentifier: req.t("stationIdentifier"),
   });
+  next();
+});
+
+app.use((req, res, next) => {
+  // Use a simple timestamp. This value will be the same until the server restarts.
+  res.locals.cacheBuster = new Date().getTime();
   next();
 });
 

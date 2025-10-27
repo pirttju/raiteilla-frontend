@@ -28,5 +28,8 @@
   "Finland": "Suomi",
   "Sweden": "Ruotsi",
   "Norway": "Norja",
-  "Great Britain": "Iso-Britannia"
+  "Great Britain": "Iso-Britannia",
+  "kilometerMarker": "Ratakilometri",
+  "timetableFor": "Aikataulu asemalle",
+  "stationIdentifier": "Paikkakoodi"
 }

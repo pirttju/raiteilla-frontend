@@ -41,23 +41,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
   fetchAllData();
 
-  const getScoredMatches = (items, query, key) => {
+  // This allows us to search both 'train_number' and 'headcode' for trains.
+  const getScoredMatches = (items, query, keys) => {
     const scoredItems = items.map((item) => {
-      const value = item[key].toString().toLowerCase();
-      let score = 0;
-      if (value === query) {
-        score = 3;
-      } else if (value.startsWith(query)) {
-        score = 2;
-      } else if (value.includes(query)) {
-        score = 1;
-      }
-      return { item, score };
+      let maxScore = 0; // Find the best score across all keys for this item
+
+      keys.forEach((key) => {
+        // Check if the item actually has this property
+        if (!item[key]) return;
+
+        const value = item[key].toString().toLowerCase();
+        let currentScore = 0;
+
+        if (value === query) {
+          currentScore = 3; // Exact match
+        } else if (value.startsWith(query)) {
+          currentScore = 2; // Starts with
+        } else if (value.includes(query)) {
+          currentScore = 1; // Contains
+        }
+
+        if (currentScore > maxScore) {
+          maxScore = currentScore;
+        }
+      });
+
+      return { item, score: maxScore };
     });
+
     return scoredItems
-      .filter((scored) => scored.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map((scored) => scored.item);
+      .filter((scored) => scored.score > 0) // Keep only actual matches
+      .sort((a, b) => b.score - a.score) // Sort by score, descending
+      .map((scored) => scored.item); // Return just the original items
   };
 
   searchInput.addEventListener("input", () => {
@@ -69,14 +84,15 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const stationMatches = getScoredMatches(stations, query, "name").slice(
+    // Search stations by 'name', and trains by 'train_number' AND 'headcode'
+    const stationMatches = getScoredMatches(stations, query, ["name"]).slice(
       0,
       5
     );
-    const trainMatches = getScoredMatches(trains, query, "train_number").slice(
-      0,
-      5
-    );
+    const trainMatches = getScoredMatches(trains, query, [
+      "train_number",
+      "headcode",
+    ]).slice(0, 5);
 
     suggestions.innerHTML = "";
     if (stationMatches.length === 0 && trainMatches.length === 0) {
@@ -86,14 +102,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
     suggestions.style.display = "block";
     const today = new Date().toISOString().slice(0, 10);
+    const flagMap = { fi: "🇫🇮", se: "🇸🇪", no: "🇳🇴", gb: "🇬🇧" };
 
-    const flagMap = {
-      fi: "🇫🇮",
-      se: "🇸🇪",
-      no: "🇳🇴",
-      gb: "🇬🇧",
-    };
+    // Display train matches first
+    trainMatches.forEach((train) => {
+      const div = document.createElement("div");
+      const displayNumber =
+        train.feed === "gb" && train.headcode
+          ? train.headcode
+          : train.train_number;
+      div.textContent = `${
+        flagMap[train.feed] || "•"
+      } Train ${displayNumber}: ${train.origin_name} - ${
+        train.destination_name
+      }`;
+      div.onclick = () => {
+        window.location.href = `/train/${train.feed}/${train.train_number}/${train.departure_date}`;
+        suggestions.innerHTML = "";
+        suggestions.style.display = "none";
+      };
+      suggestions.appendChild(div);
+    });
 
+    // Display station matches second
     stationMatches.forEach((station) => {
       const div = document.createElement("div");
       div.textContent = `${flagMap[station.feed_id] || "•"} ${station.name} (${
@@ -101,26 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
       })`;
       div.onclick = () => {
         window.location.href = `/station/${station.feed_id}/${station.station}/${today}`;
-        suggestions.innerHTML = "";
-        suggestions.style.display = "none";
-      };
-      suggestions.appendChild(div);
-    });
-
-    trainMatches.forEach((train) => {
-      const div = document.createElement("div");
-
-      // For GB trains with a headcode, show that. Otherwise, show train_number.
-      const displayNumber =
-        train.feed === "gb" && train.headcode
-          ? train.headcode
-          : train.train_number;
-
-      div.textContent = `${flagMap[train.feed] || "•"} ${
-        train.train_type
-      } ${displayNumber}: ${train.origin_name} - ${train.destination_name}`;
-      div.onclick = () => {
-        window.location.href = `/train/${train.feed}/${train.train_number}/${train.departure_date}`;
         suggestions.innerHTML = "";
         suggestions.style.display = "none";
       };

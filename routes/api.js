@@ -4,11 +4,12 @@ const router = express.Router();
 
 const { API_BASE_URL, BETA_API_BASE_URL } = process.env;
 
-// Proxy for stations
-router.get("/stations/:country", async (req, res) => {
+// Proxy for trains at a station on a specific date (the timetable)
+router.get("/stations/:country/:stationCode/:date", async (req, res) => {
   try {
+    const { country, stationCode, date } = req.params;
     const response = await axios.get(
-      `${API_BASE_URL}/stations/${req.params.country}/`
+      `${API_BASE_URL}/stations/${country}/${stationCode}/${date}`
     );
     res.json(response.data);
   } catch (error) {
@@ -16,12 +17,24 @@ router.get("/stations/:country", async (req, res) => {
   }
 });
 
-// Proxy for trains at a station
-router.get("/stations/:country/:stationCode/:date", async (req, res) => {
+// Proxy for a single station's information
+router.get("/stations/:country/:stationCode", async (req, res) => {
   try {
-    const { country, stationCode, date } = req.params;
+    const { country, stationCode } = req.params;
     const response = await axios.get(
-      `${API_BASE_URL}/stations/${country}/${stationCode}/${date}`
+      `${API_BASE_URL}/stations/${country}/${stationCode}`
+    );
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Proxy for all stations in a country
+router.get("/stations/:country", async (req, res) => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/stations/${req.params.country}/`
     );
     res.json(response.data);
   } catch (error) {
