@@ -1,0 +1,17 @@
+extends layout
+
+//- All content for this page must go inside the 'content' block,
+//- which is defined in layout.pug.
+block content
+  .error-container
+    //- The title is now a simple H1 tag inside the main content.
+    h1.error-title= __('An Error Occurred')
+    
+    //- Display the specific error message passed from the server.
+    if message
+      p.error-message= message
+    else
+      p.error-message= __('Page Not Found')
+      
+    //- Provide a clear link for the user to navigate back to the homepage.
+    a.home-link(href='/')= __('Go to Homepage')

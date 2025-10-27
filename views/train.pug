@@ -1,0 +1,200 @@
+extends layout
+
+block content
+  //- This container holds the train details and passes them to the script
+  //- using data attributes. This is a clean way to bridge server-side
+  //- rendering with client-side JavaScript.
+  div#train-info(data-country=country data-train-number=trainNumber data-date=date)
+    h1#train-title
+    p#train-summary
+  
+  //- The map container where MapLibre will render the route.
+  #map(style='height: 400px; margin-bottom: 20px;')
+
+  //- The table structure for the train's schedule.
+  table
+    thead
+      tr
+        th= __('Station')
+        th= __('Arrival')
+        th= __('Departure')
+        th= __('Platform')
+        th= __('Status')
+    tbody#schedule-body
+      //- Table rows will be dynamically inserted here by the script below.
+
+block scripts
+  script.
+    document.addEventListener('DOMContentLoaded', async () => {
+      const trainInfo = document.getElementById('train-info');
+      const { country, trainNumber, date } = trainInfo.dataset;
+      const trainTitle = document.getElementById('train-title');
+      const trainSummary = document.getElementById('train-summary');
+      const scheduleBody = document.getElementById('schedule-body');
+
+      // Map country codes to IANA timezone names
+      const timezoneMap = {
+        fi: 'Europe/Helsinki',
+        se: 'Europe/Stockholm',
+        no: 'Europe/Oslo'
+      };
+      const timezone = timezoneMap[country] || 'UTC'; // Fallback to UTC
+
+      const apiUrl = `/train-api/v1/trains/${country}/${date}/${trainNumber}`;
+
+      const formatTime = (isoString, tz) => {
+        if (!isoString) return '—';
+        return new Date(isoString).toLocaleTimeString(navigator.language, {
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: tz
+        });
+      };
+
+      const displayTime = (scheduled, estimated, actual, tz) => {
+        if (!scheduled) return '—';
+        const scheduledTime = formatTime(scheduled, tz);
+
+        if (actual) {
+          const actualTime = formatTime(actual, tz);
+          if (actualTime !== scheduledTime) {
+            return `<span class="actual">${actualTime}</span><br><s class="scheduled">${scheduledTime}</s>`;
+          }
+          return `<span class="actual">${actualTime}</span>`;
+        }
+
+        if (estimated) {
+          const estimatedTime = formatTime(estimated, tz);
+          if (estimatedTime !== scheduledTime) {
+            return `<span class="estimated">${estimatedTime}</span><br><s class="scheduled">${scheduledTime}</s>`;
+          }
+        }
+        
+        return `<span>${scheduledTime}</span>`;
+      };
+      
+      const getStatus = (scheduled, estimated, actual, cancelled) => {
+        if (cancelled) return `<span class="status-cancelled">${window.i18n.cancelled}</span>`;
+        if (!scheduled) return '';
+        const finalTime = actual || estimated;
+        if (!finalTime) return `<span class="status-ontime">${window.i18n.onTime}</span>`;
+        const delay = Math.round((new Date(finalTime) - new Date(scheduled)) / 60000);
+        if (delay > 0) {
+          return `<span class="status-delayed">${window.i18n.delayed} ${delay} ${window.i18n.minutes}</span>`;
+        }
+        return `<span class="status-ontime">${window.i18n.onTime}</span>`;
+      };
+
+      try {
+        const response = await fetch(apiUrl);
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+          const train = result.data[0];
+
+          trainTitle.innerText = `${window.i18n.scheduleForTrain || 'Schedule for Train'} ${train.train_number}`;
+          trainSummary.innerText = `${train.origin_name} — ${train.destination_name} | ${window.i18n.operator || 'Operator'}: ${train.company}`;
+
+          train.schedule.forEach(stop => {
+            if (!stop.commercial_stop) return;
+            const row = document.createElement('tr');
+
+            const arrivalDisplay = displayTime(stop.arrival, stop.estimated_arrival, stop.actual_arrival, timezone);
+            const departureDisplay = displayTime(stop.departure, stop.estimated_departure, stop.actual_departure, timezone);
+            
+            const status = stop.arrival ? 
+                           getStatus(stop.arrival, stop.estimated_arrival, stop.actual_arrival, stop.cancelled_arrival) :
+                           getStatus(stop.departure, stop.estimated_departure, stop.actual_departure, stop.cancelled_departure);
+
+            row.innerHTML = `
+              <td>${stop.name}</td>
+              <td>${arrivalDisplay}</td>
+              <td>${departureDisplay}</td>
+              <td>${stop.platform || '—'}</td>
+              <td>${status}</td>
+            `;
+            scheduleBody.appendChild(row);
+          });
+          
+          initializeMap(train.schedule);
+        } else {
+          trainTitle.innerText = 'Train not found.';
+        }
+      } catch (error) {
+        console.error('Failed to fetch train data:', error);
+        trainTitle.innerText = 'Error loading data.';
+      }
+    });
+
+    /**
+     * Initializes a MapLibre map to display the train's route and stops.
+     * @param {Array} schedule - The schedule array for the train, containing coordinates.
+     */
+    function initializeMap(schedule) {
+      // Filter for stops that have valid coordinate data.
+      const coordinates = schedule
+        .filter(stop => stop.coordinates && stop.coordinates.length === 2)
+        .map(stop => [stop.coordinates[0], stop.coordinates[1]]);
+
+      // Don't initialize the map if there aren't at least two points for a line.
+      if (coordinates.length < 2) return;
+
+      const map = new maplibregl.Map({
+        container: 'map',
+        style: 'https://sv1.raiteilla.fi/maps/osm-light/style.json',
+        center: coordinates[Math.floor(coordinates.length / 2)], // Center on the middle of the route
+        zoom: 5
+      });
+
+      map.on('load', () => {
+        // --- Draw the Route Line ---
+        map.addSource('route', {
+          'type': 'geojson',
+          'data': {
+            'type': 'Feature',
+            'geometry': {
+              'type': 'LineString',
+              'coordinates': coordinates
+            }
+          }
+        });
+        map.addLayer({
+          'id': 'route-layer',
+          'type': 'line',
+          'source': 'route',
+          'layout': { 'line-join': 'round', 'line-cap': 'round' },
+          'paint': { 'line-color': '#007cff', 'line-width': 4 }
+        });
+
+        // --- Draw the Station Points ---
+        map.addSource('stations', {
+          'type': 'geojson',
+          'data': {
+            'type': 'FeatureCollection',
+            'features': schedule
+              .filter(stop => stop.coordinates && stop.coordinates.length === 2)
+              .map(stop => ({
+                'type': 'Feature',
+                'geometry': { 'type': 'Point', 'coordinates': [stop.coordinates[0], stop.coordinates[1]] },
+                'properties': { 'name': stop.name }
+              }))
+          }
+        });
+        map.addLayer({
+          'id': 'stations-layer',
+          'type': 'circle',
+          'source': 'stations',
+          'paint': {
+            'circle-radius': 6,
+            'circle-color': '#ffffff',
+            'circle-stroke-color': '#007cff',
+            'circle-stroke-width': 2
+          }
+        });
+
+        // --- Fit Map to Route ---
+        const bounds = new maplibregl.LngLatBounds();
+        coordinates.forEach(coord => bounds.extend(coord));
+        map.fitBounds(bounds, { padding: 50 }); // Add padding so stations aren't on the edge
+      });
+    }

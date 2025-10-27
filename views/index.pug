@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  h1= __('Search for Stations and Trains')
+  #search-container
+    input#search-input(type='text', placeholder=__('Enter station name or train number...'))
+    #suggestions
+  #map
+
+block scripts
+  script(src='/js/main.js')
+  script(src='/js/map.js')
