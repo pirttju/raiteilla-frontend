@@ -31,5 +31,7 @@
   "Great Britain": "Storbritannia",
   "kilometerMarker": "Bane kilometer",
   "timetableFor": "Tidtabell for",
-  "stationIdentifier": "Primær lokasjonskode"
+  "stationIdentifier": "Primær lokasjonskode",
+  "dataAttribution": "Inneholder trafikkinformasjon fra",
+  "and": "og"
 }

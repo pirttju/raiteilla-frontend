@@ -31,5 +31,7 @@
   "Great Britain": "Storbritannien",
   "kilometerMarker": "Spårkilometer",
   "timetableFor": "Tidtabell för",
-  "stationIdentifier": "Primär platskod"
+  "stationIdentifier": "Primär platskod",
+  "dataAttribution": "Innehåller trafikinformation från",
+  "and": "och"
 }

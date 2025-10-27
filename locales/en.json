@@ -31,5 +31,7 @@
   "Great Britain": "Great Britain",
   "kilometerMarker": "Route Kilometer",
   "timetableFor": "Timetable for",
-  "stationIdentifier": "Primary Location Code"
+  "stationIdentifier": "Primary Location Code",
+  "dataAttribution": "Contains traffic information from",
+  "and": "and"
 }

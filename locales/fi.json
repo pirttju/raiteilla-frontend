@@ -31,5 +31,7 @@
   "Great Britain": "Iso-Britannia",
   "kilometerMarker": "Ratakilometri",
   "timetableFor": "Aikataulu asemalle",
-  "stationIdentifier": "Paikkakoodi"
+  "stationIdentifier": "Paikkakoodi",
+  "dataAttribution": "Liikennetietojen lähde",
+  "and": "ja"
 }
