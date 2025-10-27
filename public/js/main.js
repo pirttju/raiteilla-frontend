@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const fetchAllData = async () => {
-    const countries = ["fi", "no", "se"];
+    const countries = ["fi", "no", "se", "gb"];
     const today = new Date().toISOString().slice(0, 10);
     const stationPromises = countries.map((country) =>
       fetch(`/train-api/v1/stations/${country}`).then((res) => res.json())
@@ -91,6 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
       fi: "🇫🇮",
       se: "🇸🇪",
       no: "🇳🇴",
+      gb: "🇬🇧",
     };
 
     stationMatches.forEach((station) => {
