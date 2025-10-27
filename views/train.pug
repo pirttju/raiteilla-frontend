@@ -93,7 +93,8 @@ block scripts
         if (result.success && result.data.length > 0) {
           const train = result.data[0];
 
-          trainTitle.innerText = `${window.i18n.scheduleForTrain || 'Schedule for Train'} ${train.train_number}`;
+          const displayNumber = country === 'gb' && train.headcode ? train.headcode : train.train_number;
+          trainTitle.innerText = `${window.i18n.scheduleForTrain || 'Schedule for Train'} ${train.train_type} ${displayNumber}`;
           trainSummary.innerText = `${train.origin_name} — ${train.destination_name} | ${window.i18n.operator || 'Operator'}: ${train.company}`;
 
           train.schedule.forEach(stop => {

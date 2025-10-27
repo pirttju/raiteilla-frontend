@@ -92,15 +92,14 @@ block scripts
           result.data.forEach(train => {
             const row = document.createElement('tr');
             
-            // UPDATED: Pass the timezone to the displayTime function
+            const displayNumber = country === 'gb' && train.headcode ? train.headcode : train.train_number;
             const arrivalDisplay = displayTime(train.arrival, train.estimated_arrival, train.actual_arrival, timezone);
             const departureDisplay = displayTime(train.departure, train.estimated_departure, train.actual_departure, timezone);
-
             const arrivalStatus = getStatus(train.arrival, train.estimated_arrival, train.actual_arrival, train.cancelled_arrival);
             const departureStatus = getStatus(train.departure, train.estimated_departure, train.actual_departure, train.cancelled_departure);
 
             row.innerHTML = `
-              <td><a href="/train/${country}/${train.train_number}/${train.departure_date}">${train.train_type} ${train.train_number}</a></td>
+              <td><a href="/train/${country}/${train.train_number}/${train.departure_date}">${train.train_type} ${displayNumber}</a></td>
               <td>${train.origin_name}</td>
               <td>${train.destination_name}</td>
               <td>${arrivalDisplay}</td>

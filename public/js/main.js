@@ -109,9 +109,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     trainMatches.forEach((train) => {
       const div = document.createElement("div");
-      div.textContent = `${flagMap[train.feed] || "•"} ${train.train_type} ${
-        train.train_number
-      }: ${train.origin_name} - ${train.destination_name}`;
+
+      // For GB trains with a headcode, show that. Otherwise, show train_number.
+      const displayNumber =
+        train.feed === "gb" && train.headcode
+          ? train.headcode
+          : train.train_number;
+
+      div.textContent = `${flagMap[train.feed] || "•"} ${
+        train.train_type
+      } ${displayNumber}: ${train.origin_name} - ${train.destination_name}`;
       div.onclick = () => {
         window.location.href = `/train/${train.feed}/${train.train_number}/${train.departure_date}`;
         suggestions.innerHTML = "";
