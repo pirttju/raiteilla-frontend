@@ -23,16 +23,23 @@ document.addEventListener("DOMContentLoaded", () => {
         "icon-image": "circle-11",
         "icon-allow-overlap": true,
         "text-field": ["get", "ro"],
-        "text-offset": [0, 1.2],
+        "text-font": ["Source Sans 3 Regular"],
+        "text-offset": [0, 0.2],
         "text-anchor": "top",
       },
+    });
+
+    map.on("moveend", () => {
+      updateTrainLocations();
     });
 
     const updateTrainLocations = async () => {
       const bounds = map.getBounds();
       const bbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
       try {
-        const response = await fetch(`/train-api/v1/vehicles?bbox=${bbox}`);
+        const response = await fetch(
+          `/train-api/v1/vehicles?routeType=2&bbox=${bbox}`
+        );
         const data = await response.json();
         map.getSource("trains").setData(data);
       } catch (error) {

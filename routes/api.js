@@ -70,9 +70,9 @@ router.get("/trains/:country/:date/:trainNumber", async (req, res) => {
 // Proxy for real-time vehicle locations
 router.get("/vehicles", async (req, res) => {
   try {
-    const { bbox } = req.query;
+    const { routeType, bbox } = req.query;
     const response = await axios.get(
-      `${BETA_API_BASE_URL}/vehicles?bbox=${bbox}`
+      `${BETA_API_BASE_URL}/vehicles?routeType=${routeType}&bbox=${bbox}`
     );
     res.json(response.data);
   } catch (error) {
