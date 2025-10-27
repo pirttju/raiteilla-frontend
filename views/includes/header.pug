@@ -1,0 +1,14 @@
+header.main-header
+  nav.main-nav
+    .nav-left
+      a.nav-brand(href='/') Raiteilla
+      a.nav-link(href='/stations')= t('Stations')
+    .nav-right
+      .language-switcher
+        a(href='javascript:void(0)', onclick="changeLanguage('en')", class=(language === 'en' ? 'active' : '')) EN
+        span |
+        a(href='javascript:void(0)', onclick="changeLanguage('fi')", class=(language === 'fi' ? 'active' : '')) FI
+        span |
+        a(href='javascript:void(0)', onclick="changeLanguage('sv')", class=(language === 'sv' ? 'active' : '')) SV
+        span |
+        a(href='javascript:void(0)', onclick="changeLanguage('no')", class=(language === 'no' ? 'active' : '')) NO

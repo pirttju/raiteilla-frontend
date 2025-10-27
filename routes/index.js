@@ -3,22 +3,28 @@ const router = express.Router();
 
 // Landing Page
 router.get("/", (req, res) => {
-  res.render("index", { title: res.__("Raiteilla - Real-time Trains") });
+  res.render("index", { title: req.t("Raiteilla - Real-time Trains") });
+});
+
+// Route for the list of all stations
+router.get("/stations", (req, res) => {
+  res.render("stations", { title: req.t("All Stations") });
 });
 
 // Station View
-router.get("/station/:country/:station", (req, res) => {
+router.get("/station/:country/:station/:date", (req, res) => {
   res.render("station", {
-    title: `${res.__("Station")}: ${req.params.station}`,
+    title: `${req.t("Station")}: ${req.params.station}`,
     country: req.params.country,
     station: req.params.station,
+    date: req.params.date,
   });
 });
 
 // Train View
 router.get("/train/:country/:trainNumber/:date", (req, res) => {
   res.render("train", {
-    title: `${res.__("Train")}: ${req.params.trainNumber}`,
+    title: `${req.t("Train")}: ${req.params.trainNumber}`,
     country: req.params.country,
     trainNumber: req.params.trainNumber,
     date: req.params.date,

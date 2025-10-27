@@ -1,53 +1,63 @@
 const express = require("express");
 const path = require("path");
-const i18n = require("i18n");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
+
+const i18next = require("i18next");
+const i18nextMiddleware = require("i18next-http-middleware");
+const Backend = require("i18next-fs-backend");
 
 const indexRouter = require("./routes/index");
 const apiRouter = require("./routes/api");
 
 const app = express();
 
+i18next
+  .use(Backend) // Tell i18next to use the file system backend
+  .use(i18nextMiddleware.LanguageDetector) // Add the language detector middleware
+  .init({
+    // Configuration for the backend
+    backend: {
+      loadPath: path.join(__dirname, "locales/{{lng}}.json"),
+    },
+    fallbackLng: "en", // Default language
+    preload: ["en", "fi", "sv", "no"], // Preload all languages
+
+    // Configuration for the language detector
+    detection: {
+      // The order to check for a language
+      order: ["querystring", "cookie", "header"],
+      // The name of the cookie to store the language
+      caches: ["cookie"],
+      // The name of the query parameter
+      lookupQuerystring: "lang",
+      // The name of the cookie
+      lookupCookie: "raiteilla-lang",
+    },
+  });
+
 // View engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 
-// i18n configuration
-i18n.configure({
-  locales: ["en", "fi", "no", "sv"],
-  defaultLocale: "en",
-  queryParameter: "lang",
-  directory: path.join(__dirname, "locales"),
-  cookie: "raiteilla-lang",
-});
+app.use(i18nextMiddleware.handle(i18next));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
-
 app.use(cookieParser());
-app.use(i18n.init);
 
+// Make client-side translations available to all templates/views
 app.use((req, res, next) => {
-  // Create a JSON string of translations needed by client-side scripts
+  res.locals.language = req.language;
   res.locals.clientTranslations = JSON.stringify({
-    cancelled: res.__("Cancelled"),
-    onTime: res.__("On time"),
-    delayed: res.__("Delayed"),
-    minutes: res.__("minutes"),
-    scheduleForTrain: res.__("Schedule for Train"),
-    operator: res.__("Operator"),
+    cancelled: req.t("Cancelled"),
+    onTime: req.t("On time"),
+    delayed: req.t("Delayed"),
+    minutes: req.t("minutes"),
+    scheduleForTrain: req.t("Schedule for Train"),
+    operator: req.t("Operator"),
   });
-  next();
-});
-
-// Middleware to set language based on browser preferences
-app.use((req, res, next) => {
-  const acceptedLanguages = req.acceptsLanguages(["en", "fi", "no", "sv"]);
-  if (acceptedLanguages && !req.query.lang && !req.cookies["raiteilla-lang"]) {
-    res.setLocale(acceptedLanguages);
-  }
   next();
 });
 
@@ -58,8 +68,8 @@ app.use("/train-api/v1", apiRouter);
 // Error handling
 app.use(function (req, res, next) {
   res.status(404).render("error", {
-    title: res.__("An Error Occurred"), // <-- ADD THIS LINE
-    message: res.__("Page Not Found"),
+    title: req.t("An Error Occurred"),
+    message: req.t("Page Not Found"),
   });
 });
 

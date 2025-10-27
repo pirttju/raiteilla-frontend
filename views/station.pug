@@ -2,22 +2,22 @@ extends layout
 
 block content
   //- Use data attributes to pass server-side variables to client-side script
-  h1#station-title(data-country=country data-station=station) #{__('Timetable for')} #{station}
+  h1#station-title(data-country=country data-station=station) #{t('Timetable for')} #{station}
   
   table
     thead
       tr
-        th= __('Train')
-        th= __('Origin')
-        th= __('Destination')
-        th= __('Arrival')
-        th= __('Departure')
-        th= __('Platform')
-        th= __('Status')
+        th= t('Train')
+        th= t('Origin')
+        th= t('Destination')
+        th= t('Arrival')
+        th= t('Departure')
+        th= t('Platform')
+        th= t('Status')
     tbody#timetable-body
       //- Content will be populated by JavaScript
 
-  p#no-trains-message(style='display: none;')= __('No trains scheduled today.')
+  p#no-trains-message(style='display: none;')= t('No trains scheduled today.')
 
 block scripts
   script.

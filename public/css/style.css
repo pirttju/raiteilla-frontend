@@ -95,3 +95,79 @@ body { font-family: sans-serif; }
 .home-link:hover {
   background-color: #0056b3;
 }
+
+.main-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 0 1rem;
+}
+
+.main-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 50px;
+}
+
+.nav-left, .nav-right, .language-switcher {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.nav-brand {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+a.nav-brand, a.nav-link {
+  color: #333;
+  text-decoration: none;
+}
+a.nav-link:hover {
+  text-decoration: underline;
+}
+
+.language-switcher span {
+  color: #ccc;
+}
+
+.language-switcher a.active {
+  font-weight: bold;
+  text-decoration: none;
+  color: #0056b3;
+}
+
+.station-list-columns {
+  list-style-type: none;
+  padding: 0;
+  margin-bottom: 2rem;
+  columns: 4;
+  column-gap: 2rem;
+}
+
+.station-list-columns li {
+  break-inside: avoid;
+  padding: 4px 0;
+}
+
+/* On smaller desktops and large tablets, reduce to 3 columns */
+@media (max-width: 1200px) {
+  .station-list-columns {
+    columns: 3;
+  }
+}
+
+/* On standard tablets, reduce to 2 columns */
+@media (max-width: 992px) {
+  .station-list-columns {
+    columns: 2;
+  }
+}
+
+/* On mobile phones, switch to a single column */
+@media (max-width: 576px) {
+  .station-list-columns {
+    columns: 1;
+  }
+}

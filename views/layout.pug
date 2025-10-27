@@ -1,5 +1,5 @@
 doctype html
-html(lang=getLocale())
+html(lang=language)
   head
     title= title
     meta(charset='utf-8')
@@ -15,3 +15,9 @@ html(lang=getLocale())
     include includes/footer
     script(src='https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js')
     block scripts
+    script.
+      function changeLanguage(langCode) {
+        const searchParams = new URLSearchParams(window.location.search);
+        searchParams.set('lang', langCode);
+        window.location.href = window.location.pathname + '?' + searchParams.toString();
+      }

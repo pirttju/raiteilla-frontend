@@ -21,5 +21,11 @@
   "See on map": "Näytä kartalla",
   "An Error Occurred": "Tapahtui virhe",
   "Page Not Found": "Sivua ei löytynyt",
-  "Go to Homepage": "Siirry etusivulle"
+  "Go to Homepage": "Siirry etusivulle",
+  "Stations": "Asemat",
+  "All Stations": "Kaikki asemat",
+  "Loading stations...": "Ladataan asemia...",
+  "Finland": "Suomi",
+  "Sweden": "Ruotsi",
+  "Norway": "Norja"
 }

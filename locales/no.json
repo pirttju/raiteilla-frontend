@@ -21,5 +21,11 @@
   "See on map": "Se på kart",
   "An Error Occurred": "En feil oppstod",
   "Page Not Found": "Siden ble ikke funnet",
-  "Go to Homepage": "Gå til forsiden"
+  "Go to Homepage": "Gå til forsiden",
+  "Stations": "Stationer",
+  "All Stations": "Alla stationer",
+  "Loading stations...": "Laddar stationer...",
+  "Finland": "Finland",
+  "Sweden": "Sverige",
+  "Norway": "Norge"
 }

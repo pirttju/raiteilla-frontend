@@ -56,18 +56,20 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter((t) => t.train_number.toString().includes(query))
       .slice(0, 5);
 
+    const today = new Date().toISOString().slice(0, 10);
+
     stationMatches.forEach((station) => {
       const div = document.createElement("div");
       div.textContent = `${station.name} (${station.station})`;
       div.onclick = () => {
-        window.location.href = `/station/${station.feed_id}/${station.station}`;
+        window.location.href = `/station/${station.feed_id}/${station.station}/${today}`;
       };
       suggestions.appendChild(div);
     });
 
     trainMatches.forEach((train) => {
       const div = document.createElement("div");
-      div.textContent = `Train ${train.train_number}: ${train.origin_name} - ${train.destination_name}`;
+      div.textContent = `${train.train_type} ${train.train_number}: ${train.origin_name} - ${train.destination_name}`;
 
       div.onclick = () => {
         window.location.href = `/train/${train.feed}/${train.train_number}/${train.departure_date}`;
