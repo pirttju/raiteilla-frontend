@@ -35,8 +35,7 @@
   "dataAttribution": "Contains traffic information from",
   "and": "and",
   "trainConsist": "Train Consist",
-  "fromStation": "From",
-  "toStation": "To",
   "totalLength": "Length",
-  "maxSpeed": "Max Speed"
+  "maxSpeed": "Max Speed",
+  "toggleMap": "Show/Hide Map"
 }

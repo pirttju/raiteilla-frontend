@@ -35,8 +35,7 @@
   "dataAttribution": "Liikennetietojen lähde",
   "and": "ja",
   "trainConsist": "Junan kokoonpano",
-  "fromStation": "Mistä",
-  "toStation": "Mihin",
   "totalLength": "Pituus",
-  "maxSpeed": "Huippunopeus"
+  "maxSpeed": "Huippunopeus",
+  "toggleMap": "Näytä/Piilota kartta"
 }

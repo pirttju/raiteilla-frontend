@@ -291,3 +291,23 @@ a.nav-link:hover {
   border-top: 1px solid #ccc;
   padding-top: 3px;
 }
+
+/* =================================== */
+/* Map Toggle Button Styles            */
+/* =================================== */
+
+.map-toggle-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  margin-bottom: 1rem;
+  transition: background-color 0.2s;
+}
+
+.map-toggle-button:hover {
+  background-color: #0056b3;
+}

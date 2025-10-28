@@ -35,8 +35,7 @@
   "dataAttribution": "Innehåller trafikinformation från",
   "and": "och",
   "trainConsist": "Tågsammansättning",
-  "fromStation": "Från",
-  "toStation": "Till",
   "totalLength": "Längd",
-  "maxSpeed": "Max hastighet"
+  "maxSpeed": "Max hastighet",
+  "toggleMap": "Visa/Dölj karta"
 }

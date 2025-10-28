@@ -35,8 +35,7 @@
   "dataAttribution": "Inneholder trafikkinformasjon fra",
   "and": "og",
   "trainConsist": "Togsett",
-  "fromStation": "Fra",
-  "toStation": "Til",
   "totalLength": "Lengde",
-  "maxSpeed": "Maks hastighet"
+  "maxSpeed": "Maks hastighet",
+  "toggleMap": "Vis/Skjul kart"
 }

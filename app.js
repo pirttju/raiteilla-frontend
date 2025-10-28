@@ -61,10 +61,9 @@ app.use((req, res, next) => {
     kilometerMarker: req.t("kilometerMarker"),
     stationIdentifier: req.t("stationIdentifier"),
     trainConsist: req.t("trainConsist"),
-    fromStation: req.t("fromStation"),
-    toStation: req.t("toStation"),
     totalLength: req.t("totalLength"),
     maxSpeed: req.t("maxSpeed"),
+    toggleMap: req.t("toggleMap"),
   });
   next();
 });

@@ -8,8 +8,10 @@ block content
     h1#train-title
     p#train-summary
   div#consist-container
+
   //- The map container where MapLibre will render the route.
-  #map(style='height: 400px; margin-bottom: 20px;')
+  button#toggle-map-btn.map-toggle-button= t('toggleMap')
+  #map(style='height: 400px; margin-bottom: 20px; display: none;')
 
   //- The table structure for the train's schedule.
   table
@@ -86,30 +88,27 @@ block scripts
         return `<span class="status-ontime">${window.i18n.onTime}</span>`;
       };
 
-      const fetchAndRenderConsist = async (trainType) => {
-        // Condition check: only for GB trains of specific types
+      const fetchAndRenderConsist = async (trainType, stationNameMap) => {
         if (country !== 'gb' || !['XX', 'OO', 'EE'].includes(trainType)) {
           return;
         }
-
         const consistContainer = document.getElementById('consist-container');
         const allocationsApiUrl = `/train-api/v1/allocations/${country}/${date}/${trainNumber}`;
-
         try {
           const response = await fetch(allocationsApiUrl);
           const result = await response.json();
-
-          if (!result.success || result.data.length === 0) return; // Do nothing if no data
-
+          if (!result.success || result.data.length === 0) return;
           result.data.forEach(allocation => {
-            // Main container for this segment of the journey
             const section = document.createElement('div');
             section.className = 'consist-section';
-
-            // Title and metadata
-            const title = `<h2>${window.i18n.trainConsist} (${window.i18n.fromStation} ${allocation.begin_station_short_code} ${window.i18n.toStation} ${allocation.end_station_short_code})</h2>`;
-            const meta = `<p class="consist-meta">${window.i18n.totalLength}: ${allocation.total_length}m | ${window.i18n.maxSpeed}: ${allocation.maximum_speed}km/h</p>`;
             
+            // Use the map to get full station names
+            const beginName = stationNameMap[allocation.begin_station_short_code] || allocation.begin_station_short_code;
+            const endName = stationNameMap[allocation.end_station_short_code] || allocation.end_station_short_code;
+
+            const title = `<h2>${window.i18n.trainConsist} (${beginName} — ${endName})</h2>`;
+            const meta = `<p class="consist-meta">${window.i18n.totalLength}: ${allocation.total_length}m | ${window.i18n.maxSpeed}: ${allocation.maximum_speed}km/h</p>`;
+
             // Container for scrolling
             const scrollContainer = document.createElement('div');
             scrollContainer.className = 'consist-scroll-container';
@@ -165,6 +164,11 @@ block scripts
           trainTitle.innerText = `${window.i18n.scheduleForTrain} ${train.train_type} ${displayNumber}`;
           trainSummary.innerText = `${train.origin_name} — ${train.destination_name} | ${window.i18n.operator}: ${train.company}`;
 
+          const stationNameMap = {};
+          train.schedule.forEach(stop => {
+            stationNameMap[stop.station] = stop.name;
+          });
+
           train.schedule.forEach(stop => {
             if (!stop.commercial_stop) return;
             const row = document.createElement('tr');
@@ -186,9 +190,21 @@ block scripts
             scheduleBody.appendChild(row);
           });
 
-          fetchAndRenderConsist(train.train_type);
-          
-          initializeMap(train.schedule);
+          fetchAndRenderConsist(train.train_type, stationNameMap);
+
+          const mapContainer = document.getElementById('map');
+          const toggleMapBtn = document.getElementById('toggle-map-btn');
+          let mapInstance = null; // To keep track of the map object
+
+          toggleMapBtn.addEventListener('click', () => {
+            const isHidden = mapContainer.style.display === 'none';
+            mapContainer.style.display = isHidden ? 'block' : 'none';
+
+            // Initialize the map only on the first time it's shown
+            if (isHidden && !mapInstance) {
+              mapInstance = initializeMap(train.schedule);
+            }
+          });
         } else {
           trainTitle.innerText = 'Train not found.';
         }
@@ -198,75 +214,20 @@ block scripts
       }
     });
 
-    /**
-     * Initializes a MapLibre map to display the train's route and stops.
-     * @param {Array} schedule - The schedule array for the train, containing coordinates.
-     */
     function initializeMap(schedule) {
-      // Filter for stops that have valid coordinate data.
-      const coordinates = schedule
-        .filter(stop => stop.coordinates && stop.coordinates.length === 2)
-        .map(stop => [stop.coordinates[0], stop.coordinates[1]]);
-
-      // Don't initialize the map if there aren't at least two points for a line.
-      if (coordinates.length < 2) return;
-
-      const map = new maplibregl.Map({
-        container: 'map',
-        style: 'https://sv1.raiteilla.fi/maps/osm-light/style.json',
-        center: coordinates[Math.floor(coordinates.length / 2)], // Center on the middle of the route
-        zoom: 5
-      });
-
+      const coordinates = schedule.filter(stop => stop.coordinates).map(stop => [stop.coordinates[0], stop.coordinates[1]]);
+      if (coordinates.length < 2) return null;
+      const map = new maplibregl.Map({ container: 'map', style: 'https://sv1.raiteilla.fi/maps/osm-light/style.json', center: coordinates[0], zoom: 6 });
       map.on('load', () => {
-        // --- Draw the Route Line ---
-        map.addSource('route', {
-          'type': 'geojson',
-          'data': {
-            'type': 'Feature',
-            'geometry': {
-              'type': 'LineString',
-              'coordinates': coordinates
-            }
-          }
-        });
-        map.addLayer({
-          'id': 'route-layer',
-          'type': 'line',
-          'source': 'route',
-          'layout': { 'line-join': 'round', 'line-cap': 'round' },
-          'paint': { 'line-color': '#007cff', 'line-width': 4 }
-        });
-
-        // --- Draw the Station Points ---
-        map.addSource('stations', {
-          'type': 'geojson',
-          'data': {
-            'type': 'FeatureCollection',
-            'features': schedule
-              .filter(stop => stop.coordinates && stop.coordinates.length === 2)
-              .map(stop => ({
-                'type': 'Feature',
-                'geometry': { 'type': 'Point', 'coordinates': [stop.coordinates[0], stop.coordinates[1]] },
-                'properties': { 'name': stop.name }
-              }))
-          }
-        });
-        map.addLayer({
-          'id': 'stations-layer',
-          'type': 'circle',
-          'source': 'stations',
-          'paint': {
-            'circle-radius': 6,
-            'circle-color': '#ffffff',
-            'circle-stroke-color': '#007cff',
-            'circle-stroke-width': 2
-          }
-        });
-
-        // --- Fit Map to Route ---
+        const route = { type: 'Feature', geometry: { type: 'LineString', coordinates: coordinates } };
+        map.addSource('route', { type: 'geojson', data: route });
+        map.addLayer({ id: 'route-layer', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#007cff', 'line-width': 4 } });
+        const stations = { type: 'FeatureCollection', features: schedule.map(stop => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [stop.coordinates[0], stop.coordinates[1]] }, properties: { name: stop.name } })) };
+        map.addSource('stations', { type: 'geojson', data: stations });
+        map.addLayer({ id: 'stations-layer', type: 'circle', source: 'stations', paint: { 'circle-radius': 6, 'circle-color': '#ffffff', 'circle-stroke-color': '#007cff', 'circle-stroke-width': 2 } });
         const bounds = new maplibregl.LngLatBounds();
         coordinates.forEach(coord => bounds.extend(coord));
-        map.fitBounds(bounds, { padding: 50 }); // Add padding so stations aren't on the edge
+        map.fitBounds(bounds, { padding: 50 });
       });
+      return map; // Return the map object
     }
