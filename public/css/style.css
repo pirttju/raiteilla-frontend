@@ -218,7 +218,7 @@ a.nav-link:hover {
 
 .consist-section h2 {
   margin-top: 0;
-  font-size: 1.2em;
+  font-size: 1.1em;
 }
 
 .consist-meta {
@@ -227,14 +227,14 @@ a.nav-link:hover {
   margin-bottom: 1rem;
 }
 
-/* This container enables horizontal scrolling on small screens */
 .consist-scroll-container {
   overflow-x: auto;
-  padding-bottom: 15px; /* Space for the scrollbar */
+  padding-bottom: 15px;
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  gap: 10px;
+  gap: 6px;
+  padding-left: 1px;
 }
 
 .consist-group {
@@ -250,15 +250,15 @@ a.nav-link:hover {
 
 .vehicle {
   min-width: 80px;
-  height: 50px;
+  height: 40px;
   border: 2px solid #666;
-  margin: 0 -1px; /* Let borders overlap slightly */
+  margin: 0 -1px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
   font-family: monospace, sans-serif;
-  font-size: 0.8em;
+  font-size: 0.75em;
   padding: 2px 0;
 }
 
@@ -266,12 +266,15 @@ a.nav-link:hover {
   background-color: #f0f0f0;
 }
 
+/* Base style for all locomotives */
 .locomotive {
   background-color: #888;
   color: white;
-  /* Rounded left side to indicate the "front" */
-  border-radius: 10px 0 0 10px;
 }
+
+.locomotive:first-child { border-radius: 10px 0 0 10px; }
+.locomotive:last-child { border-radius: 0 10px 10px 0; }
+.locomotive:first-child:last-child { border-radius: 10px; }
 
 .sales-number {
   font-weight: bold;
