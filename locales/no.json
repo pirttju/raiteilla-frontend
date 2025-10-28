@@ -33,5 +33,10 @@
   "timetableFor": "Tidtabell for",
   "stationIdentifier": "Primær lokasjonskode",
   "dataAttribution": "Inneholder trafikkinformasjon fra",
-  "and": "og"
+  "and": "og",
+  "trainConsist": "Togsett",
+  "fromStation": "Fra",
+  "toStation": "Til",
+  "totalLength": "Lengde",
+  "maxSpeed": "Maks hastighet"
 }

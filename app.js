@@ -60,6 +60,11 @@ app.use((req, res, next) => {
     timetableFor: req.t("timetableFor"),
     kilometerMarker: req.t("kilometerMarker"),
     stationIdentifier: req.t("stationIdentifier"),
+    trainConsist: req.t("trainConsist"),
+    fromStation: req.t("fromStation"),
+    toStation: req.t("toStation"),
+    totalLength: req.t("totalLength"),
+    maxSpeed: req.t("maxSpeed"),
   });
   next();
 });

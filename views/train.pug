@@ -7,7 +7,7 @@ block content
   div#train-info(data-country=country data-train-number=trainNumber data-date=date)
     h1#train-title
     p#train-summary
-  
+  div#consist-container
   //- The map container where MapLibre will render the route.
   #map(style='height: 400px; margin-bottom: 20px;')
 
@@ -86,6 +86,74 @@ block scripts
         return `<span class="status-ontime">${window.i18n.onTime}</span>`;
       };
 
+      const fetchAndRenderConsist = async (trainType) => {
+        // Condition check: only for GB trains of specific types
+        if (country !== 'gb' || !['XX', 'OO', 'EE'].includes(trainType)) {
+          return;
+        }
+
+        const consistContainer = document.getElementById('consist-container');
+        const allocationsApiUrl = `/train-api/v1/allocations/${country}/${date}/${trainNumber}`;
+
+        try {
+          const response = await fetch(allocationsApiUrl);
+          const result = await response.json();
+
+          if (!result.success || result.data.length === 0) return; // Do nothing if no data
+
+          result.data.forEach(allocation => {
+            // Main container for this segment of the journey
+            const section = document.createElement('div');
+            section.className = 'consist-section';
+
+            // Title and metadata
+            const title = `<h2>${window.i18n.trainConsist} (${window.i18n.fromStation} ${allocation.begin_station_short_code} ${window.i18n.toStation} ${allocation.end_station_short_code})</h2>`;
+            const meta = `<p class="consist-meta">${window.i18n.totalLength}: ${allocation.total_length}m | ${window.i18n.maxSpeed}: ${allocation.maximum_speed}km/h</p>`;
+            
+            // Container for scrolling
+            const scrollContainer = document.createElement('div');
+            scrollContainer.className = 'consist-scroll-container';
+
+            // Loop through groups and their vehicles
+            allocation.groups.forEach(group => {
+              const groupDiv = document.createElement('div');
+              groupDiv.className = 'consist-group';
+
+              const vehiclesWrapper = document.createElement('div');
+              vehiclesWrapper.className = 'vehicles-wrapper';
+
+              group.vehicles.forEach(vehicle => {
+                const vehicleDiv = document.createElement('div');
+                vehicleDiv.className = `vehicle ${vehicle.vehicle_type}`; // 'wagon' or 'locomotive'
+                
+                const salesNum = `<span class="sales-number">${vehicle.sales_number || '&nbsp;'}</span>`;
+                const vehicleNum = `<span class="vehicle-number">${vehicle.vehicle_number || '&nbsp;'}</span>`;
+
+                vehicleDiv.innerHTML = `${salesNum}${vehicleNum}`;
+                vehiclesWrapper.appendChild(vehicleDiv);
+              });
+              
+              groupDiv.appendChild(vehiclesWrapper);
+
+              if (group.group_id) {
+                const groupIdSpan = document.createElement('span');
+                groupIdSpan.className = 'group-id';
+                groupIdSpan.textContent = group.group_id;
+                groupDiv.appendChild(groupIdSpan);
+              }
+
+              scrollContainer.appendChild(groupDiv);
+            });
+
+            section.innerHTML = title + meta;
+            section.appendChild(scrollContainer);
+            consistContainer.appendChild(section);
+          });
+        } catch (error) {
+          console.error('Failed to fetch train consist data:', error);
+        }
+      };
+
       try {
         const response = await fetch(apiUrl);
         const result = await response.json();
@@ -117,6 +185,8 @@ block scripts
             `;
             scheduleBody.appendChild(row);
           });
+
+          fetchAndRenderConsist(train.train_type);
           
           initializeMap(train.schedule);
         } else {

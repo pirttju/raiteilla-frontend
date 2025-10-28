@@ -80,4 +80,23 @@ router.get("/vehicles", async (req, res) => {
   }
 });
 
+// Proxy for train allocations / consists
+router.get("/allocations/:country/:date/:trainNumber", async (req, res) => {
+  try {
+    const { country, date, trainNumber } = req.params;
+    const response = await axios.get(
+      `${API_BASE_URL}/allocations/${country}/${date}/${trainNumber}`
+    );
+    res.json(response.data);
+  } catch (error) {
+    // It's common for allocations not to be found, so we can return success:false
+    // instead of a server error for a 404.
+    if (error.response && error.response.status === 404) {
+      res.json({ success: false, data: [] });
+    } else {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+});
+
 module.exports = router;

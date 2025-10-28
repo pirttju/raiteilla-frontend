@@ -203,3 +203,91 @@ a.nav-link:hover {
   color: #2460A1;
   text-decoration: underline;
 }
+
+/* =================================== */
+/* Train Consist Diagram Styles        */
+/* =================================== */
+
+.consist-section {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  padding: 1rem;
+}
+
+.consist-section h2 {
+  margin-top: 0;
+  font-size: 1.2em;
+}
+
+.consist-meta {
+  font-size: 0.9em;
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+/* This container enables horizontal scrolling on small screens */
+.consist-scroll-container {
+  overflow-x: auto;
+  padding-bottom: 15px; /* Space for the scrollbar */
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.consist-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.vehicles-wrapper {
+  display: flex;
+  flex-direction: row;
+}
+
+.vehicle {
+  min-width: 80px;
+  height: 50px;
+  border: 2px solid #666;
+  margin: 0 -1px; /* Let borders overlap slightly */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  font-family: monospace, sans-serif;
+  font-size: 0.8em;
+  padding: 2px 0;
+}
+
+.wagon {
+  background-color: #f0f0f0;
+}
+
+.locomotive {
+  background-color: #888;
+  color: white;
+  /* Rounded left side to indicate the "front" */
+  border-radius: 10px 0 0 10px;
+}
+
+.sales-number {
+  font-weight: bold;
+}
+
+.vehicle-number {
+  color: #333;
+}
+.locomotive .vehicle-number {
+  color: #eee;
+}
+
+.group-id {
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 5px;
+  border-top: 1px solid #ccc;
+  padding-top: 3px;
+}

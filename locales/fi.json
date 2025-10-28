@@ -33,5 +33,10 @@
   "timetableFor": "Aikataulu asemalle",
   "stationIdentifier": "Paikkakoodi",
   "dataAttribution": "Liikennetietojen lähde",
-  "and": "ja"
+  "and": "ja",
+  "trainConsist": "Junan kokoonpano",
+  "fromStation": "Mistä",
+  "toStation": "Mihin",
+  "totalLength": "Pituus",
+  "maxSpeed": "Huippunopeus"
 }

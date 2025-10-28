@@ -33,5 +33,10 @@
   "timetableFor": "Tidtabell för",
   "stationIdentifier": "Primär platskod",
   "dataAttribution": "Innehåller trafikinformation från",
-  "and": "och"
+  "and": "och",
+  "trainConsist": "Tågsammansättning",
+  "fromStation": "Från",
+  "toStation": "Till",
+  "totalLength": "Längd",
+  "maxSpeed": "Max hastighet"
 }

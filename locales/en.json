@@ -33,5 +33,10 @@
   "timetableFor": "Timetable for",
   "stationIdentifier": "Primary Location Code",
   "dataAttribution": "Contains traffic information from",
-  "and": "and"
+  "and": "and",
+  "trainConsist": "Train Consist",
+  "fromStation": "From",
+  "toStation": "To",
+  "totalLength": "Length",
+  "maxSpeed": "Max Speed"
 }
