@@ -2,6 +2,7 @@ extends layout
 
 block content
   h1= t('All Stations')
+  button#toggle-locations-btn.locations-toggle-button= t('showAllLocations')
   
   // This container will be populated by the script below
   #station-list-container
@@ -11,8 +12,12 @@ block scripts
   script.
     document.addEventListener('DOMContentLoaded', async () => {
       const container = document.getElementById('station-list-container');
-      
-      // Map country codes to their translated names
+      const toggleBtn = document.getElementById('toggle-locations-btn');
+
+      // State variables
+      let showAll = false; // By default, we only show stations
+      let allLocationsByCountry = {}; // Store the full data from the API
+
       const countryNames = {
         fi: '#{t("Finland")}',
         se: '#{t("Sweden")}',
@@ -20,51 +25,85 @@ block scripts
         gb: '#{t("Great Britain")}'
       };
 
+      // A dedicated function to render the lists
+      const renderStationLists = () => {
+        container.innerHTML = ''; // Clear the container
+
+        Object.keys(allLocationsByCountry).forEach(country => {
+          const countryData = allLocationsByCountry[country];
+          if (!countryData || !countryData.success) return;
+
+          const countryHeader = document.createElement('h2');
+          countryHeader.textContent = countryNames[country];
+          container.appendChild(countryHeader);
+
+          let locationsToRender = countryData.data;
+          if (!showAll) {
+            locationsToRender = locationsToRender.filter(loc => loc.type === 'station');
+          }
+          
+          locationsToRender.sort((a, b) => a.name.localeCompare(b.name));
+
+          let currentLetter = '';
+          let currentList = null; // This will hold our active <ul> element
+
+          locationsToRender.forEach(location => {
+            const firstLetter = location.name.charAt(0).toUpperCase();
+            
+            // If the letter changes (and is a valid letter), create a new heading and a new list
+            if (firstLetter && firstLetter !== currentLetter) {
+              currentLetter = firstLetter;
+              
+              const letterHeading = document.createElement('h3');
+              letterHeading.className = 'station-letter-heading';
+              letterHeading.textContent = currentLetter;
+              container.appendChild(letterHeading);
+
+              // Create a list for this letter section
+              currentList = document.createElement('ul');
+              currentList.className = 'station-list-columns';
+              container.appendChild(currentList);
+            }
+
+            // If a list exists (i.e., we've started), add the item to it
+            if (currentList) {
+              const listItem = document.createElement('li');
+              const link = document.createElement('a');
+              const today = new Date().toISOString().slice(0, 10);
+              link.href = `/station/${location.feed_id}/${location.station}/${today}`;
+              link.textContent = location.name;
+              listItem.appendChild(link);
+              currentList.appendChild(listItem);
+            }
+          });
+        });
+      };
+
+      // --- Event listener for the toggle button ---
+      toggleBtn.addEventListener('click', () => {
+        showAll = !showAll; // Flip the state
+        renderStationLists(); // Re-render the view with the new state
+      });
+
+      // --- Initial data fetching logic ---
       const countries = ['fi', 'se', 'no', 'gb'];
-      
-      // Create a fetch promise for each country
       const promises = countries.map(country => 
         fetch(`/train-api/v1/stations/${country}`)
           .then(res => res.json())
-          .then(data => ({ country, data })) // Pair the data with its country code
+          .then(data => ({ country, data }))
       );
 
       try {
-        const today = new Date().toISOString().slice(0, 10);
-
         const results = await Promise.all(promises);
         
-        // Clear the "Loading..." message
-        container.innerHTML = ''; 
-
+        // Store all fetched data in our global object
         results.forEach(result => {
-          if (result.data.success) {
-            // Create a heading for the country
-            const countryHeader = document.createElement('h2');
-            countryHeader.textContent = countryNames[result.country];
-            container.appendChild(countryHeader);
-
-            // Create a list for the stations
-            const stationList = document.createElement('ul');
-            stationList.className = 'station-list-columns';
-
-            // Filter out hidden stations and sort alphabetically
-            const stations = result.data.data
-              .filter(station => !station.is_hidden)
-              .sort((a, b) => a.name.localeCompare(b.name));
-
-            stations.forEach(station => {
-              const listItem = document.createElement('li');
-              const link = document.createElement('a');
-              link.href = `/station/${station.feed_id}/${station.station}/${today}`;
-              link.textContent = station.name;
-              listItem.appendChild(link);
-              stationList.appendChild(listItem);
-            });
-
-            container.appendChild(stationList);
-          }
+          allLocationsByCountry[result.country] = result.data;
         });
+        
+        // Perform the initial render with the default filter (showAll = false)
+        renderStationLists();
+
       } catch (error) {
         console.error('Failed to fetch station lists:', error);
         container.innerHTML = '<p>Error loading station data. Please try again later.</p>';

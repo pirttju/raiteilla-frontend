@@ -32,6 +32,7 @@
   "kilometerMarker": "Ratakilometri",
   "timetableFor": "Aikataulu asemalle",
   "stationIdentifier": "Paikkakoodi",
+  "showAllLocations": "Näytä kaikki liikennepaikat",
   "dataAttribution": "Liikennetietojen lähde",
   "and": "ja",
   "trainConsist": "Junan kokoonpano",

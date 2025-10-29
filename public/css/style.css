@@ -138,6 +138,36 @@ a.nav-link:hover {
   color: #0056b3;
 }
 
+/* =================================== */
+/* Styles for All Stations Page        */
+/* =================================== */
+
+.locations-toggle-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  margin-bottom: 1.5rem;
+  transition: background-color 0.2s;
+}
+
+.locations-toggle-button:hover {
+  background-color: #5a6268;
+}
+
+.station-letter-heading {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #333;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid #007bff;
+}
+
 .station-list-columns {
   list-style-type: none;
   padding: 0;
@@ -179,6 +209,10 @@ a.nav-link:hover {
   padding-bottom: 1rem;
   border-bottom: 1px solid #eee;
 }
+
+/* =================================== */
+/* Footer Styles                       */
+/* =================================== */
 
 .main-footer {
   margin-top: 3rem;
@@ -316,3 +350,4 @@ a.nav-link:hover {
 .map-toggle-button:hover {
   background-color: #0056b3;
 }
+
