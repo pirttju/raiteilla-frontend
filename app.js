@@ -55,8 +55,6 @@ app.use((req, res, next) => {
     onTime: req.t("On time"),
     delayed: req.t("Delayed"),
     minutes: req.t("minutes"),
-    operator: req.t("Operator"),
-    scheduleForTrain: req.t("Schedule for Train"),
     timetableFor: req.t("timetableFor"),
     kilometerMarker: req.t("kilometerMarker"),
     stationIdentifier: req.t("stationIdentifier"),
@@ -64,6 +62,8 @@ app.use((req, res, next) => {
     totalLength: req.t("totalLength"),
     maxSpeed: req.t("maxSpeed"),
     toggleMap: req.t("toggleMap"),
+    scheduleForTrain: req.t("scheduleForTrain"),
+    operator: req.t("operator"),
   });
   next();
 });

@@ -1,19 +1,19 @@
 extends layout
 
 block content
-  //- This container holds the train details and passes them to the script
-  //- using data attributes. This is a clean way to bridge server-side
-  //- rendering with client-side JavaScript.
   div#train-info(data-country=country data-train-number=trainNumber data-date=date)
     h1#train-title
     p#train-summary
+  
+  //- Container for the consist diagrams
   div#consist-container
-
-  //- The map container where MapLibre will render the route.
+  
+  //- Button to toggle the map
   button#toggle-map-btn.map-toggle-button= t('toggleMap')
+  
+  //- The map starts hidden
   #map(style='height: 400px; margin-bottom: 20px; display: none;')
 
-  //- The table structure for the train's schedule.
   table
     thead
       tr
@@ -23,7 +23,7 @@ block content
         th= t('Platform')
         th= t('Status')
     tbody#schedule-body
-      //- Table rows will be dynamically inserted here by the script below.
+      //- Schedule details will be populated by JavaScript
 
 block scripts
   script.
@@ -33,65 +33,14 @@ block scripts
       const trainTitle = document.getElementById('train-title');
       const trainSummary = document.getElementById('train-summary');
       const scheduleBody = document.getElementById('schedule-body');
-
-      // Map country codes to IANA timezone names
-      const timezoneMap = {
-        fi: 'Europe/Helsinki',
-        se: 'Europe/Stockholm',
-        no: 'Europe/Oslo',
-        gb: 'Europe/London'
-      };
-      const timezone = timezoneMap[country] || 'UTC'; // Fallback to UTC
-
+      const timezoneMap = { fi: 'Europe/Helsinki', se: 'Europe/Stockholm', no: 'Europe/Oslo', gb: 'Europe/London' };
+      const timezone = timezoneMap[country] || 'UTC';
       const apiUrl = `/train-api/v1/trains/${country}/${date}/${trainNumber}`;
-
-      const formatTime = (isoString, tz) => {
-        if (!isoString) return '—';
-        return new Date(isoString).toLocaleTimeString(navigator.language, {
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZone: tz
-        });
-      };
-
-      const displayTime = (scheduled, estimated, actual, tz) => {
-        if (!scheduled) return '—';
-        const scheduledTime = formatTime(scheduled, tz);
-
-        if (actual) {
-          const actualTime = formatTime(actual, tz);
-          if (actualTime !== scheduledTime) {
-            return `<span class="actual">${actualTime}</span><br><s class="scheduled">${scheduledTime}</s>`;
-          }
-          return `<span class="actual">${actualTime}</span>`;
-        }
-
-        if (estimated) {
-          const estimatedTime = formatTime(estimated, tz);
-          if (estimatedTime !== scheduledTime) {
-            return `<span class="estimated">${estimatedTime}</span><br><s class="scheduled">${scheduledTime}</s>`;
-          }
-        }
-        
-        return `<span>${scheduledTime}</span>`;
-      };
+      const formatTime = (isoString, tz) => { if (!isoString) return '—'; return new Date(isoString).toLocaleTimeString(navigator.language, { hour: '2-digit', minute: '2-digit', timeZone: tz }); };
+      const displayTime = (scheduled, estimated, actual, tz) => { if (!scheduled) return '—'; const scheduledTime = formatTime(scheduled, tz); if (actual) { const actualTime = formatTime(actual, tz); if (actualTime !== scheduledTime) { return `<span class="actual">${actualTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } return `<span class="actual">${actualTime}</span>`; } if (estimated) { const estimatedTime = formatTime(estimated, tz); if (estimatedTime !== scheduledTime) { return `<span class="estimated">${estimatedTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } } return `<span>${scheduledTime}</span>`; };
       
-      const getStatus = (scheduled, estimated, actual, cancelled) => {
-        if (cancelled) return `<span class="status-cancelled">${window.i18n.cancelled}</span>`;
-        if (!scheduled) return '';
-        const finalTime = actual || estimated;
-        if (!finalTime) return `<span class="status-ontime">${window.i18n.onTime}</span>`;
-        const delay = Math.round((new Date(finalTime) - new Date(scheduled)) / 60000);
-        if (delay > 0) {
-          return `<span class="status-delayed">${window.i18n.delayed} ${delay} ${window.i18n.minutes}</span>`;
-        }
-        return `<span class="status-ontime">${window.i18n.onTime}</span>`;
-      };
-
       const fetchAndRenderConsist = async (trainType, stationNameMap) => {
-        if (country !== 'gb' || !['XX', 'OO', 'EE'].includes(trainType)) {
-          return;
-        }
+        if (country !== 'gb' || !['XX', 'OO', 'EE'].includes(trainType)) { return; }
         const consistContainer = document.getElementById('consist-container');
         const allocationsApiUrl = `/train-api/v1/allocations/${country}/${date}/${trainNumber}`;
         try {
@@ -101,55 +50,41 @@ block scripts
           result.data.forEach(allocation => {
             const section = document.createElement('div');
             section.className = 'consist-section';
-            
-            // Use the map to get full station names
             const beginName = stationNameMap[allocation.begin_station_short_code] || allocation.begin_station_short_code;
             const endName = stationNameMap[allocation.end_station_short_code] || allocation.end_station_short_code;
-
             const title = `<h2>${window.i18n.trainConsist} (${beginName} — ${endName})</h2>`;
             const meta = `<p class="consist-meta">${window.i18n.totalLength}: ${allocation.total_length}m | ${window.i18n.maxSpeed}: ${allocation.maximum_speed}km/h</p>`;
-
-            // Container for scrolling
-            const scrollContainer = document.createElement('div');
-            scrollContainer.className = 'consist-scroll-container';
-
-            // Loop through groups and their vehicles
-            allocation.groups.forEach(group => {
-              const groupDiv = document.createElement('div');
-              groupDiv.className = 'consist-group';
-
-              const vehiclesWrapper = document.createElement('div');
-              vehiclesWrapper.className = 'vehicles-wrapper';
-
-              group.vehicles.forEach(vehicle => {
-                const vehicleDiv = document.createElement('div');
-                vehicleDiv.className = `vehicle ${vehicle.vehicle_type}`; // 'wagon' or 'locomotive'
-                
-                const salesNum = `<span class="sales-number">${vehicle.sales_number || '&nbsp;'}</span>`;
-                const vehicleNum = `<span class="vehicle-number">${vehicle.vehicle_number || '&nbsp;'}</span>`;
-
-                vehicleDiv.innerHTML = `${salesNum}${vehicleNum}`;
-                vehiclesWrapper.appendChild(vehicleDiv);
-              });
-              
-              groupDiv.appendChild(vehiclesWrapper);
-
-              if (group.group_id) {
-                const groupIdSpan = document.createElement('span');
-                groupIdSpan.className = 'group-id';
-                groupIdSpan.textContent = group.group_id;
-                groupDiv.appendChild(groupIdSpan);
-              }
-
-              scrollContainer.appendChild(groupDiv);
-            });
-
+            const scrollContainer = document.createElement('div'); scrollContainer.className = 'consist-scroll-container';
+            allocation.groups.forEach(group => { const groupDiv = document.createElement('div'); groupDiv.className = 'consist-group'; const vehiclesWrapper = document.createElement('div'); vehiclesWrapper.className = 'vehicles-wrapper'; group.vehicles.forEach(vehicle => { const vehicleDiv = document.createElement('div'); vehicleDiv.className = `vehicle ${vehicle.vehicle_type}`; const salesNum = `<span class="sales-number">${vehicle.sales_number || '&nbsp;'}</span>`; const vehicleNum = `<span class="vehicle-number">${vehicle.vehicle_number || '&nbsp;'}</span>`; vehicleDiv.innerHTML = `${salesNum}${vehicleNum}`; vehiclesWrapper.appendChild(vehicleDiv); }); groupDiv.appendChild(vehiclesWrapper); if (group.group_id) { const groupIdSpan = document.createElement('span'); groupIdSpan.className = 'group-id'; groupIdSpan.textContent = group.group_id; groupDiv.appendChild(groupIdSpan); } scrollContainer.appendChild(groupDiv); });
             section.innerHTML = title + meta;
             section.appendChild(scrollContainer);
             consistContainer.appendChild(section);
           });
-        } catch (error) {
-          console.error('Failed to fetch train consist data:', error);
+        } catch (error) { console.error('Failed to fetch train consist data:', error); }
+      };
+
+      // Definitive, robust getStatus function
+      const getStatus = (stop) => {
+        if (!stop || typeof stop !== 'object') {
+          return `<span class="status-ontime">${window.i18n.onTime}</span>`;
+        }
+        if (stop.cancelled_departure || stop.cancelled_arrival) {
+          return `<span class="status-cancelled">${window.i18n.cancelled}</span>`;
+        }
+        let finalTime = null;
+        let scheduledTime = null;
+        if (stop.actual_departure && stop.departure) { finalTime = stop.actual_departure; scheduledTime = stop.departure; } 
+        else if (stop.actual_arrival && stop.arrival) { finalTime = stop.actual_arrival; scheduledTime = stop.arrival; } 
+        else if (stop.estimated_departure && stop.departure) { finalTime = stop.estimated_departure; scheduledTime = stop.departure; } 
+        else if (stop.estimated_arrival && stop.arrival) { finalTime = stop.estimated_arrival; scheduledTime = stop.arrival; }
+        if (!finalTime || !scheduledTime) {
+          return `<span class="status-ontime">${window.i18n.onTime}</span>`;
+        }
+        const delay = Math.floor((new Date(finalTime) - new Date(scheduledTime)) / 60000);
+        if (delay >= 5) {
+          return `<span class="status-delayed">${window.i18n.delayed} ${delay} ${window.i18n.minutes}</span>`;
+        } else {
+          return `<span class="status-ontime">${window.i18n.onTime}</span>`;
         }
       };
 
@@ -159,52 +94,40 @@ block scripts
 
         if (result.success && result.data.length > 0) {
           const train = result.data[0];
-
           const displayNumber = country === 'gb' && train.headcode ? train.headcode : train.train_number;
           trainTitle.innerText = `${window.i18n.scheduleForTrain} ${train.train_type} ${displayNumber}`;
           trainSummary.innerText = `${train.origin_name} — ${train.destination_name} | ${window.i18n.operator}: ${train.company}`;
 
           const stationNameMap = {};
           train.schedule.forEach(stop => {
-            stationNameMap[stop.station] = stop.name;
+            if (stop) stationNameMap[stop.station] = stop.name;
           });
-
+          
           train.schedule.forEach(stop => {
+            if (!stop) return; // Guard clause for null entries
             if (!stop.commercial_stop) return;
             const row = document.createElement('tr');
-
             const arrivalDisplay = displayTime(stop.arrival, stop.estimated_arrival, stop.actual_arrival, timezone);
             const departureDisplay = displayTime(stop.departure, stop.estimated_departure, stop.actual_departure, timezone);
-            
-            const status = stop.arrival ? 
-                           getStatus(stop.arrival, stop.estimated_arrival, stop.actual_arrival, stop.cancelled_arrival) :
-                           getStatus(stop.departure, stop.estimated_departure, stop.actual_departure, stop.cancelled_departure);
-
-            row.innerHTML = `
-              <td>${stop.name}</td>
-              <td>${arrivalDisplay}</td>
-              <td>${departureDisplay}</td>
-              <td>${stop.platform || '—'}</td>
-              <td>${status}</td>
-            `;
+            const status = getStatus(stop);
+            row.innerHTML = `<td>${stop.name}</td><td>${arrivalDisplay}</td><td>${departureDisplay}</td><td>${stop.platform || '—'}</td><td>${status}</td>`;
             scheduleBody.appendChild(row);
           });
-
+          
           fetchAndRenderConsist(train.train_type, stationNameMap);
-
+          
           const mapContainer = document.getElementById('map');
           const toggleMapBtn = document.getElementById('toggle-map-btn');
-          let mapInstance = null; // To keep track of the map object
+          let mapInstance = null;
 
           toggleMapBtn.addEventListener('click', () => {
             const isHidden = mapContainer.style.display === 'none';
             mapContainer.style.display = isHidden ? 'block' : 'none';
-
-            // Initialize the map only on the first time it's shown
             if (isHidden && !mapInstance) {
               mapInstance = initializeMap(train.schedule);
             }
           });
+
         } else {
           trainTitle.innerText = 'Train not found.';
         }
@@ -215,19 +138,19 @@ block scripts
     });
 
     function initializeMap(schedule) {
-      const coordinates = schedule.filter(stop => stop.coordinates).map(stop => [stop.coordinates[0], stop.coordinates[1]]);
+      const coordinates = schedule.filter(stop => stop && stop.coordinates).map(stop => [stop.coordinates[0], stop.coordinates[1]]);
       if (coordinates.length < 2) return null;
       const map = new maplibregl.Map({ container: 'map', style: 'https://sv1.raiteilla.fi/maps/osm-light/style.json', center: coordinates[0], zoom: 6 });
       map.on('load', () => {
         const route = { type: 'Feature', geometry: { type: 'LineString', coordinates: coordinates } };
         map.addSource('route', { type: 'geojson', data: route });
         map.addLayer({ id: 'route-layer', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#007cff', 'line-width': 4 } });
-        const stations = { type: 'FeatureCollection', features: schedule.map(stop => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [stop.coordinates[0], stop.coordinates[1]] }, properties: { name: stop.name } })) };
+        const stations = { type: 'FeatureCollection', features: schedule.filter(stop => stop && stop.coordinates).map(stop => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [stop.coordinates[0], stop.coordinates[1]] }, properties: { name: stop.name } })) };
         map.addSource('stations', { type: 'geojson', data: stations });
         map.addLayer({ id: 'stations-layer', type: 'circle', source: 'stations', paint: { 'circle-radius': 6, 'circle-color': '#ffffff', 'circle-stroke-color': '#007cff', 'circle-stroke-width': 2 } });
         const bounds = new maplibregl.LngLatBounds();
         coordinates.forEach(coord => bounds.extend(coord));
         map.fitBounds(bounds, { padding: 50 });
       });
-      return map; // Return the map object
+      return map;
     }

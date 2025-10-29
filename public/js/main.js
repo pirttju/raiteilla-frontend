@@ -111,11 +111,9 @@ document.addEventListener("DOMContentLoaded", () => {
         train.feed === "gb" && train.headcode
           ? train.headcode
           : train.train_number;
-      div.textContent = `${
-        flagMap[train.feed] || "•"
-      } Train ${displayNumber}: ${train.origin_name} - ${
-        train.destination_name
-      }`;
+      div.textContent = `${flagMap[train.feed] || "•"} ${
+        train.train_type
+      } ${displayNumber}: ${train.origin_name} - ${train.destination_name}`;
       div.onclick = () => {
         window.location.href = `/train/${train.feed}/${train.train_number}/${train.departure_date}`;
         suggestions.innerHTML = "";
