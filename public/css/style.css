@@ -249,78 +249,51 @@ a.nav-link:hover {
   border-radius: 5px;
   padding: 1rem;
 }
+.consist-section h2 { margin-top: 0; font-size: 1.1em; }
+.consist-meta { font-size: 0.9em; color: #555; margin-bottom: 1rem; }
+.consist-scroll-container { overflow-x: auto; padding-bottom: 15px; display: flex; flex-direction: row; align-items: flex-start; gap: 6px; padding-left: 1px; }
+.consist-group { display: flex; flex-direction: column; align-items: center; }
+.vehicles-wrapper { display: flex; flex-direction: row; align-items: flex-end; }
+.vehicle-unit { display: flex; flex-direction: column; align-items: center; text-align: center; }
 
-.consist-section h2 {
-  margin-top: 0;
-  font-size: 1.1em;
-}
-
-.consist-meta {
-  font-size: 0.9em;
-  color: #555;
-  margin-bottom: 1rem;
-}
-
-.consist-scroll-container {
-  overflow-x: auto;
-  padding-bottom: 15px;
+.vehicle-icon-container {
+  position: relative;
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 6px;
-  padding-left: 1px;
-}
-
-.consist-group {
-  display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
+  width: 96px;
+  height: 48px;
+  transition: width 0.2s ease-in-out, height 0.2s ease-in-out;
 }
 
-.vehicles-wrapper {
-  display: flex;
-  flex-direction: row;
-}
-
-.vehicle {
-  min-width: 80px;
-  height: 40px;
-  border: 2px solid #666;
-  margin: 0 -1px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  font-family: monospace, sans-serif;
-  font-size: 0.75em;
-  padding: 2px 0;
-}
-
-.wagon {
-  background-color: #f0f0f0;
-}
-
-/* Base style for all locomotives */
-.locomotive {
-  background-color: #888;
-  color: white;
-}
-
-.locomotive:first-child { border-radius: 10px 0 0 10px; }
-.locomotive:last-child { border-radius: 0 10px 10px 0; }
-.locomotive:first-child:last-child { border-radius: 10px; }
-
-.sales-number {
-  font-weight: bold;
-  font-size: 1.1em;
-  line-height: 1;
+.vehicle-icon {
+  width: 100%;
+  height: auto;
 }
 
 .vehicle-number {
+  font-family: monospace, sans-serif;
+  font-size: 0.8em;
   color: #333;
+  margin-bottom: 4px;
+  height: 1.2em;
+  transition: font-size 0.2s ease-in-out;
 }
-.locomotive .vehicle-number {
-  color: #eee;
+
+.sales-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #ffcc80;
+  color: #000;
+  font-weight: bold;
+  font-family: sans-serif;
+  font-size: 1em;
+  padding: 2px 6px;
+  border: 1px solid #b78a3d;
+  border-radius: 3px;
+  transition: font-size 0.2s ease-in-out;
 }
 
 .group-id {
@@ -329,6 +302,21 @@ a.nav-link:hover {
   margin-top: 5px;
   border-top: 1px solid #ccc;
   padding-top: 3px;
+}
+
+@media (max-width: 992px) {
+  .vehicle-icon-container {
+    width: 64px;
+    height: 32px;
+  }
+  
+  .vehicle-number {
+    font-size: 0.75em;
+  }
+
+  .sales-number {
+    font-size: 0.825em;
+  }
 }
 
 /* =================================== */

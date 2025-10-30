@@ -40,27 +40,103 @@ block scripts
       const displayTime = (scheduled, estimated, actual, tz) => { if (!scheduled) return '—'; const scheduledTime = formatTime(scheduled, tz); if (actual) { const actualTime = formatTime(actual, tz); if (actualTime !== scheduledTime) { return `<span class="actual">${actualTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } return `<span class="actual">${actualTime}</span>`; } if (estimated) { const estimatedTime = formatTime(estimated, tz); if (estimatedTime !== scheduledTime) { return `<span class="estimated">${estimatedTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } } return `<span>${scheduledTime}</span>`; };
       
       const fetchAndRenderConsist = async (trainType, stationNameMap) => {
-        if (country !== 'gb' || !['XX', 'OO', 'EE'].includes(trainType)) { return; }
+        if (country !== 'gb' || !['XX', 'OO', 'EE'].includes(trainType)) {
+          return;
+        }
+
         const consistContainer = document.getElementById('consist-container');
         const allocationsApiUrl = `/train-api/v1/allocations/${country}/${date}/${trainNumber}`;
+
         try {
           const response = await fetch(allocationsApiUrl);
           const result = await response.json();
+
           if (!result.success || result.data.length === 0) return;
+
           result.data.forEach(allocation => {
             const section = document.createElement('div');
             section.className = 'consist-section';
+
             const beginName = stationNameMap[allocation.begin_station_short_code] || allocation.begin_station_short_code;
             const endName = stationNameMap[allocation.end_station_short_code] || allocation.end_station_short_code;
+
             const title = `<h2>${window.i18n.trainConsist} (${beginName} — ${endName})</h2>`;
             const meta = `<p class="consist-meta">${window.i18n.totalLength}: ${allocation.total_length}m | ${window.i18n.maxSpeed}: ${allocation.maximum_speed}km/h</p>`;
-            const scrollContainer = document.createElement('div'); scrollContainer.className = 'consist-scroll-container';
-            allocation.groups.forEach(group => { const groupDiv = document.createElement('div'); groupDiv.className = 'consist-group'; const vehiclesWrapper = document.createElement('div'); vehiclesWrapper.className = 'vehicles-wrapper'; group.vehicles.forEach(vehicle => { const vehicleDiv = document.createElement('div'); vehicleDiv.className = `vehicle ${vehicle.vehicle_type}`; const salesNum = `<span class="sales-number">${vehicle.sales_number || '&nbsp;'}</span>`; const vehicleNum = `<span class="vehicle-number">${vehicle.vehicle_number || '&nbsp;'}</span>`; vehicleDiv.innerHTML = `${salesNum}${vehicleNum}`; vehiclesWrapper.appendChild(vehicleDiv); }); groupDiv.appendChild(vehiclesWrapper); if (group.group_id) { const groupIdSpan = document.createElement('span'); groupIdSpan.className = 'group-id'; groupIdSpan.textContent = group.group_id; groupDiv.appendChild(groupIdSpan); } scrollContainer.appendChild(groupDiv); });
+            
+            const scrollContainer = document.createElement('div');
+            scrollContainer.className = 'consist-scroll-container';
+
+            const isEmu = allocation.groups.every(group => 
+              group.vehicles.every(vehicle => vehicle.vehicle_type === 'wagon')
+            );
+            
+            allocation.groups.forEach(group => {
+              const groupDiv = document.createElement('div');
+              groupDiv.className = 'consist-group';
+
+              const vehiclesWrapper = document.createElement('div');
+              vehiclesWrapper.className = 'vehicles-wrapper';
+
+              group.vehicles.forEach((vehicle, index) => {
+                const vehicleUnitDiv = document.createElement('div');
+                vehicleUnitDiv.className = 'vehicle-unit';
+
+                let iconSrc = '';
+                if (vehicle.vehicle_type === 'locomotive') {
+                  iconSrc = '/images/locomotive.svg';
+                } else { // It's a wagon
+                  const isFirst = index === 0;
+                  const isLast = index === group.vehicles.length - 1;
+                  
+                  if (isEmu) {
+                    // Handle EMU wagons
+                    if (isFirst) { iconSrc = '/images/wagon_front.svg'; }
+                    else if (isLast) { iconSrc = '/images/wagon_rear.svg'; }
+                    else { iconSrc = '/images/wagon.svg'; }
+                  } else {
+                    // Handle driving van trailers on loco-hauled trains
+                    const isDvt = vehicle.vehicle_number && vehicle.vehicle_number.startsWith('82');
+                    
+                    if (isDvt) {
+                      if (isFirst) { iconSrc = '/images/wagon_front.svg'; }
+                      else if (isLast) { iconSrc = '/images/wagon_rear.svg'; }
+                      else { iconSrc = '/images/wagon.svg'; } // DVT in the middle
+                    } else {
+                      iconSrc = '/images/wagon.svg'; // It's a normal wagon
+                    }
+                  }
+                }
+                
+                const vehicleNumHtml = `<span class="vehicle-number">${vehicle.vehicle_number || ''}</span>`;
+                const iconContainer = document.createElement('div');
+                iconContainer.className = 'vehicle-icon-container';
+                const iconHtml = `<img src="${iconSrc}" class="vehicle-icon" alt="${vehicle.vehicle_type}">`;
+                const salesNumHtml = vehicle.sales_number ? `<span class="sales-number">${vehicle.sales_number}</span>` : '';
+                iconContainer.innerHTML = iconHtml + salesNumHtml;
+                vehicleUnitDiv.innerHTML = vehicleNumHtml;
+                vehicleUnitDiv.appendChild(iconContainer);
+                vehiclesWrapper.appendChild(vehicleUnitDiv);
+              });
+              
+              groupDiv.appendChild(vehiclesWrapper);
+
+              if (group.group_id) {
+                const groupIdSpan = document.createElement('span');
+                groupIdSpan.className = 'group-id';
+                groupIdSpan.textContent = group.group_id;
+                groupDiv.appendChild(groupIdSpan);
+              }
+
+              scrollContainer.appendChild(groupDiv);
+            });
+
             section.innerHTML = title + meta;
             section.appendChild(scrollContainer);
             consistContainer.appendChild(section);
           });
-        } catch (error) { console.error('Failed to fetch train consist data:', error); }
+        } catch (error) {
+          console.error('Failed to fetch train consist data:', error);
+        }
       };
 
       // Definitive, robust getStatus function
