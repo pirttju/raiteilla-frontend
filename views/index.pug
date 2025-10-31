@@ -1,12 +1,14 @@
 extends layout
 
 block content
-  h1= t('Search for Stations and Trains')
-  #search-container
-    input#search-input(type='text', placeholder=t('Enter station name or train number...'))
-    #suggestions
-  #map
+  section.hero
+    .hero-content
+      h1.hero-title Raiteilla
+      p.hero-subtitle #{t('Search for Stations and Trains')}
+      
+      #search-container
+        input#search-input(type='text', placeholder=t('Enter station name or train number...'))
+        #suggestions
 
 block scripts
   script(src=`/js/main.js?v=${cacheBuster}`)
-  script(src=`/js/map.js?v=${cacheBuster}`)

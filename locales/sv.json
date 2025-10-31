@@ -32,6 +32,7 @@
   "stationIdentifier": "Primär platskod",
   "scheduleForTrain": "Tidtabell för Tåg",
   "operator": "Operatör",
+  "Map": "Karta",
   "showAllLocations": "Visa alla driftplatser",
   "dataAttribution": "Innehåller trafikinformation från",
   "and": "och",

@@ -6,6 +6,81 @@ body { font-family: sans-serif; }
 #suggestions div { padding: 0.5rem; cursor: pointer; }
 #suggestions div:hover { background-color: #f0f0f0; }
 
+/* =================================== */
+/* Homepage Hero Section Styles        */
+/* =================================== */
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 1rem;
+  background-color: #f8f9fa;
+  /* A subtle gradient adds a bit of visual interest */
+  background-image: linear-gradient(180deg, #ffffff 0%, #e9ecef 100%);
+  border-bottom: 1px solid #dee2e6;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: #6c757d;
+  margin-bottom: 2rem;
+}
+
+/* Make the search container and input larger on the homepage */
+#search-container {
+  width: 360px;
+  max-width: 600px;
+  position: relative; /* For positioning suggestions */
+}
+
+#search-input {
+  width: 360px;
+  padding: 1rem;
+  font-size: 1.1rem;
+  border: 1px solid #ced4da;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+#suggestions {
+  width: 360px;
+  text-align: left;
+  position: absolute;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* =================================== */
+/* Full-Page Map Styles                */
+/* =================================== */
+
+/* We override the default padding ONLY on the map page's container */
+.map-page-content {
+  padding: 0 !important;
+  height: calc(100vh - 51px); /* Full viewport height MINUS the header height */
+  position: relative; /* Needed for map to correctly size itself */
+}
+
+/* This rule applies to the map div inside our special container */
+.map-page-content #map {
+  width: 100%;
+  height: 100%;
+}
+
+/* =================================== */
+/* Page Styles                         */
+/* =================================== */
+
 /* Base style for all status badges */
 .status-ontime,
 .status-delayed,
@@ -322,7 +397,7 @@ a.nav-link:hover {
   padding-top: 3px;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 992px) {
   .vehicle-icon-container {
     width: 64px;
     height: 32px;

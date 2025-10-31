@@ -32,6 +32,7 @@
   "stationIdentifier": "Primær lokasjonskode",
   "scheduleForTrain": "Tidtabell for Tog",
   "operator": "Operatør",
+  "Map": "Kart",
   "showAllLocations": "Vis alle driftssteder",
   "dataAttribution": "Inneholder trafikkinformasjon fra",
   "and": "og",

@@ -32,6 +32,7 @@
   "stationIdentifier": "Primary Location Code",
   "scheduleForTrain": "Schedule for Train",
   "operator": "Operator",
+  "Map": "Map",
   "showAllLocations": "Show All Operating Locations",
   "dataAttribution": "Contains traffic information from",
   "and": "and",

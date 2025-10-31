@@ -6,6 +6,11 @@ router.get("/", (req, res) => {
   res.render("index", { title: req.t("Raiteilla - Real-time Trains") });
 });
 
+// Route for the dedicated map page
+router.get("/map", (req, res) => {
+  res.render("map", { title: req.t("Map") });
+});
+
 // Route for the list of all stations
 router.get("/stations", (req, res) => {
   res.render("stations", { title: req.t("All Stations") });

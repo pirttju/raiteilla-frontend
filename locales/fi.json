@@ -32,6 +32,7 @@
   "stationIdentifier": "Paikkakoodi",
   "scheduleForTrain": "Junan aikataulu",
   "operator": "Operaattori",
+  "Map": "Kartta",
   "showAllLocations": "Näytä kaikki liikennepaikat",
   "dataAttribution": "Liikennetietojen lähde",
   "and": "ja",
