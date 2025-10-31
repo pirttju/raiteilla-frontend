@@ -119,15 +119,18 @@ block scripts
                 const iconContainer = document.createElement('div');
                 iconContainer.className = 'vehicle-icon-container';
                 
-                // Check for the generic "closed" state OR the specific Finnish sales numbers.
                 const isFinnishSpecial = country === 'fi' && finnishSpecialSalesNumbers.includes(vehicle.sales_number);
-                
-                if (vehicle.sales_state === 'closed' || isFinnishSpecial) {
+                const isClosed = vehicle.sales_state === 'closed' || isFinnishSpecial;
+
+                if (isClosed) {
                   iconContainer.classList.add('is-closed');
                 }
 
                 const iconHtml = `<img src="${iconSrc}" class="vehicle-icon" alt="${vehicle.vehicle_type}">`;
-                const salesNumHtml = vehicle.sales_number ? `<span class="sales-number">${vehicle.sales_number}</span>` : '';
+                const salesNumHtml = !isClosed && vehicle.sales_number
+                  ? `<span class="sales-number">${vehicle.sales_number}</span>`
+                  : '';
+
                 iconContainer.innerHTML = iconHtml + salesNumHtml;
                 vehicleUnitDiv.innerHTML = vehicleNumHtml;
                 vehicleUnitDiv.appendChild(iconContainer);
@@ -136,10 +139,10 @@ block scripts
               
               groupDiv.appendChild(vehiclesWrapper);
 
-              if (group.group_id) {
+              if (group.group_id && group.group_id.trim().length > 0) {
                 const groupIdSpan = document.createElement('span');
                 groupIdSpan.className = 'group-id';
-                groupIdSpan.textContent = group.group_id;
+                groupIdSpan.textContent = group.group_id.trim();
                 groupDiv.appendChild(groupIdSpan);
               }
 
