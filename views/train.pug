@@ -93,7 +93,20 @@ block scripts
             const beginName = stationNameMap[allocation.begin_station_short_code] || allocation.begin_station_short_code;
             const endName = stationNameMap[allocation.end_station_short_code] || allocation.end_station_short_code;
             const title = `<h2>${window.i18n.trainConsist} (${beginName}–${endName})</h2>`;
-            const meta = `<p class="consist-meta">${window.i18n.totalLength}: ${allocation.total_length}m | ${window.i18n.maxSpeed}: ${allocation.maximum_speed}km/h</p>`;
+            const metaParts = [];
+
+            // Add length if it exists, with a space before "m"
+            if (allocation.total_length) {
+              metaParts.push(`${window.i18n.totalLength}: ${allocation.total_length} m`);
+            }
+
+            // Add max speed ONLY if it's greater than 0, with a space before "km/h"
+            if (allocation.maximum_speed > 0) {
+              metaParts.push(`${window.i18n.maxSpeed}: ${allocation.maximum_speed} km/h`);
+            }
+
+            // Join the parts and wrap them in the <p> tag
+            const meta = `<p class="consist-meta">${metaParts.join(' | ')}</p>`;
             const scrollContainer = document.createElement('div'); scrollContainer.className = 'consist-scroll-container';
             const isEmu = allocation.groups.every(group => group.vehicles.every(vehicle => vehicle.vehicle_type === 'wagon'));
             allocation.groups.forEach(group => {
