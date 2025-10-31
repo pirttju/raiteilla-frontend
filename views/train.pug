@@ -3,6 +3,10 @@ extends layout
 block content
   div#train-info(data-country=country data-train-number=trainNumber data-date=date)
     h1#train-title
+      // The placeholder for the line ID badge, starts hidden
+      span#line-id-badge.line-badge(style='display: none;')
+      // The placeholder for the main title text
+      span#train-title-text
     p#train-summary
   
   //- Container for the consist diagrams
@@ -28,158 +32,46 @@ block content
 block scripts
   script.
     document.addEventListener('DOMContentLoaded', async () => {
+      // --- Setup ---
       const trainInfo = document.getElementById('train-info');
       const { country, trainNumber, date } = trainInfo.dataset;
-      const trainTitle = document.getElementById('train-title');
+      const trainTitleText = document.getElementById('train-title-text');
       const trainSummary = document.getElementById('train-summary');
       const scheduleBody = document.getElementById('schedule-body');
       const timezoneMap = { fi: 'Europe/Helsinki', se: 'Europe/Stockholm', no: 'Europe/Oslo', gb: 'Europe/London' };
       const timezone = timezoneMap[country] || 'UTC';
-      const apiUrl = `/train-api/v1/trains/${country}/${date}/${trainNumber}`;
-      const formatTime = (isoString, tz) => { if (!isoString) return '—'; return new Date(isoString).toLocaleTimeString(navigator.language, { hour: '2-digit', minute: '2-digit', timeZone: tz }); };
-      const displayTime = (scheduled, estimated, actual, tz) => { if (!scheduled) return '—'; const scheduledTime = formatTime(scheduled, tz); if (actual) { const actualTime = formatTime(actual, tz); if (actualTime !== scheduledTime) { return `<span class="actual">${actualTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } return `<span class="actual">${actualTime}</span>`; } if (estimated) { const estimatedTime = formatTime(estimated, tz); if (estimatedTime !== scheduledTime) { return `<span class="estimated">${estimatedTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } } return `<span>${scheduledTime}</span>`; };
-      
-      const fetchAndRenderConsist = async (trainType, stationNameMap) => {
-        if (!['gb', 'fi', 'no'].includes(country)) {
-          return;
-        }
+      const trainApiUrl = `/train-api/v1/trains/${country}/${date}/${trainNumber}`;
+      const lineColoursUrl = '/data/line_colours.json';
 
-        const consistContainer = document.getElementById('consist-container');
-        const allocationsApiUrl = `/train-api/v1/allocations/${country}/${date}/${trainNumber}`;
+      // --- Helper Functions ---
+      const formatTime = (isoString, tz) => { if (!isoString) return '–'; return new Date(isoString).toLocaleTimeString(navigator.language, { hour: '2-digit', minute: '2-digit', timeZone: tz }); };
+      const displayTime = (scheduled, estimated, actual, tz) => { if (!scheduled) return '–'; const scheduledTime = formatTime(scheduled, tz); if (actual) { const actualTime = formatTime(actual, tz); if (actualTime !== scheduledTime) { return `<span class="actual">${actualTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } return `<span class="actual">${actualTime}</span>`; } if (estimated) { const estimatedTime = formatTime(estimated, tz); if (estimatedTime !== scheduledTime) { return `<span class="estimated">${estimatedTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } } return `<span>${scheduledTime}</span>`; };
 
-        try {
-          const response = await fetch(allocationsApiUrl);
-          const result = await response.json();
-
-          if (!result.success || result.data.length === 0) return;
-
-          // Define the array of special Finnish sales numbers here
-          const finnishSpecialSalesNumbers = ['990', '991', '992', '993', '994', '995', '996', '997', '998', '999'];
-
-          result.data.forEach(allocation => {
-            const section = document.createElement('div');
-            section.className = 'consist-section';
-
-            const beginName = stationNameMap[allocation.begin_station_short_code] || allocation.begin_station_short_code;
-            const endName = stationNameMap[allocation.end_station_short_code] || allocation.end_station_short_code;
-
-            const title = `<h2>${window.i18n.trainConsist} (${beginName} — ${endName})</h2>`;
-            const meta = `<p class="consist-meta">${window.i18n.totalLength}: ${allocation.total_length}m | ${window.i18n.maxSpeed}: ${allocation.maximum_speed}km/h</p>`;
-            
-            const scrollContainer = document.createElement('div');
-            scrollContainer.className = 'consist-scroll-container';
-
-            const isEmu = allocation.groups.every(group => 
-              group.vehicles.every(vehicle => vehicle.vehicle_type === 'wagon')
-            );
-            
-            allocation.groups.forEach(group => {
-              const groupDiv = document.createElement('div');
-              groupDiv.className = 'consist-group';
-
-              const vehiclesWrapper = document.createElement('div');
-              vehiclesWrapper.className = 'vehicles-wrapper';
-
-              group.vehicles.forEach((vehicle, index) => {
-                const vehicleUnitDiv = document.createElement('div');
-                vehicleUnitDiv.className = 'vehicle-unit';
-
-                let iconSrc = '';
-                if (vehicle.vehicle_type === 'locomotive') {
-                  iconSrc = '/images/locomotive.svg';
-                } else { // It's a wagon
-                  const isFirst = index === 0;
-                  const isLast = index === group.vehicles.length - 1;
-                  
-                  if (isEmu) {
-                    if (isFirst) { iconSrc = '/images/wagon_front.svg'; }
-                    else if (isLast) { iconSrc = '/images/wagon_rear.svg'; }
-                    else { iconSrc = '/images/wagon.svg'; }
-                  } else { // It's a loco-hauled train
-                    let isControlCar = false;
-                    
-                    // Country-specific logic for control cars
-                    if (country === 'gb' && vehicle.vehicle_number && vehicle.vehicle_number.startsWith('82')) {
-                      isControlCar = true;
-                    } else if (country === 'fi' && vehicle.vehicle_number === 'Edo') {
-                      isControlCar = true;
-                    }
-                    
-                    if (isControlCar) {
-                      if (isFirst) { iconSrc = '/images/wagon_front.svg'; }
-                      else if (isLast) { iconSrc = '/images/wagon_rear.svg'; }
-                      else { iconSrc = '/images/wagon.svg'; } // Control car in the middle
-                    } else {
-                      iconSrc = '/images/wagon.svg'; // It's a normal wagon
-                    }
-                  }
-                }
-                
-                const vehicleNumHtml = `<span class="vehicle-number">${vehicle.vehicle_number || ''}</span>`;
-                const iconContainer = document.createElement('div');
-                iconContainer.className = 'vehicle-icon-container';
-                
-                const isFinnishSpecial = country === 'fi' && finnishSpecialSalesNumbers.includes(vehicle.sales_number);
-                const isClosed = vehicle.sales_state === 'closed' || isFinnishSpecial;
-
-                if (isClosed) {
-                  iconContainer.classList.add('is-closed');
-                }
-
-                const iconHtml = `<img src="${iconSrc}" class="vehicle-icon" alt="${vehicle.vehicle_type}">`;
-                const salesNumHtml = !isClosed && vehicle.sales_number
-                  ? `<span class="sales-number">${vehicle.sales_number}</span>`
-                  : '';
-
-                iconContainer.innerHTML = iconHtml + salesNumHtml;
-                vehicleUnitDiv.innerHTML = vehicleNumHtml;
-                vehicleUnitDiv.appendChild(iconContainer);
-                vehiclesWrapper.appendChild(vehicleUnitDiv);
-              });
-              
-              groupDiv.appendChild(vehiclesWrapper);
-
-              if (group.group_id) {
-                const groupIdStr = String(group.group_id).trim();
-
-                if (groupIdStr.length > 0) {
-                  const groupIdSpan = document.createElement('span');
-                  groupIdSpan.className = 'group-id';
-                  groupIdSpan.textContent = groupIdStr; // Use the cleaned string
-                  groupDiv.appendChild(groupIdSpan);
-                }
-              }
-
-              scrollContainer.appendChild(groupDiv);
-            });
-
-            section.innerHTML = title + meta;
-            section.appendChild(scrollContainer);
-            consistContainer.appendChild(section);
-          });
-        } catch (error) {
-          console.error('Failed to fetch train consist data:', error);
-        }
-      };
-
-      // Definitive, robust getStatus function
       const getStatus = (stop) => {
+        // If stop is null or not an object, show nothing.
         if (!stop || typeof stop !== 'object') {
-          return `<span class="status-ontime">${window.i18n.onTime}</span>`;
+          return '';
         }
+
+        // If cancelled, always show the "Cancelled" badge.
         if (stop.cancelled_departure || stop.cancelled_arrival) {
           return `<span class="status-cancelled">${window.i18n.cancelled}</span>`;
         }
-        let finalTime = null;
-        let scheduledTime = null;
+
+        // Determine the most definitive real-time data available.
+        let finalTime = null; let scheduledTime = null;
         if (stop.actual_departure && stop.departure) { finalTime = stop.actual_departure; scheduledTime = stop.departure; } 
         else if (stop.actual_arrival && stop.arrival) { finalTime = stop.actual_arrival; scheduledTime = stop.arrival; } 
         else if (stop.estimated_departure && stop.departure) { finalTime = stop.estimated_departure; scheduledTime = stop.departure; } 
         else if (stop.estimated_arrival && stop.arrival) { finalTime = stop.estimated_arrival; scheduledTime = stop.arrival; }
+        // If NO real-time data was found, show nothing.
         if (!finalTime || !scheduledTime) {
-          return `<span class="status-ontime">${window.i18n.onTime}</span>`;
+          return '';
         }
+
+        // If we have real-time data, calculate the delay.
         const delay = Math.floor((new Date(finalTime) - new Date(scheduledTime)) / 60000);
+        // Apply the 5-minute tolerance window.
         if (delay >= 5) {
           return `<span class="status-delayed">${window.i18n.delayed} ${delay} ${window.i18n.minutes}</span>`;
         } else {
@@ -187,29 +79,89 @@ block scripts
         }
       };
 
-      try {
-        const response = await fetch(apiUrl);
-        const result = await response.json();
-
-        if (result.success && result.data.length > 0) {
-          const train = result.data[0];
-          const displayNumber = country === 'gb' && train.headcode ? train.headcode : train.train_number;
-          trainTitle.innerText = `${window.i18n.scheduleForTrain} ${train.train_type} ${displayNumber}`;
-          trainSummary.innerText = `${train.origin_name} — ${train.destination_name} | ${window.i18n.operator}: ${train.company}`;
-
-          const stationNameMap = {};
-          train.schedule.forEach(stop => {
-            if (stop) stationNameMap[stop.station] = stop.name;
+      const fetchAndRenderConsist = async (trainType, stationNameMap) => {
+        if (!['gb', 'fi', 'no'].includes(country)) { return; }
+        const consistContainer = document.getElementById('consist-container');
+        const allocationsApiUrl = `/train-api/v1/allocations/${country}/${date}/${trainNumber}`;
+        try {
+          const response = await fetch(allocationsApiUrl);
+          const result = await response.json();
+          if (!result.success || result.data.length === 0) return;
+          const finnishSpecialSalesNumbers = ['999', '998', '997', '996', '995'];
+          result.data.forEach(allocation => {
+            const section = document.createElement('div'); section.className = 'consist-section';
+            const beginName = stationNameMap[allocation.begin_station_short_code] || allocation.begin_station_short_code;
+            const endName = stationNameMap[allocation.end_station_short_code] || allocation.end_station_short_code;
+            const title = `<h2>${window.i18n.trainConsist} (${beginName}–${endName})</h2>`;
+            const meta = `<p class="consist-meta">${window.i18n.totalLength}: ${allocation.total_length}m | ${window.i18n.maxSpeed}: ${allocation.maximum_speed}km/h</p>`;
+            const scrollContainer = document.createElement('div'); scrollContainer.className = 'consist-scroll-container';
+            const isEmu = allocation.groups.every(group => group.vehicles.every(vehicle => vehicle.vehicle_type === 'wagon'));
+            allocation.groups.forEach(group => {
+              const groupDiv = document.createElement('div'); groupDiv.className = 'consist-group';
+              const vehiclesWrapper = document.createElement('div'); vehiclesWrapper.className = 'vehicles-wrapper';
+              group.vehicles.forEach((vehicle, index) => {
+                const vehicleUnitDiv = document.createElement('div'); vehicleUnitDiv.className = 'vehicle-unit';
+                let iconSrc = '';
+                if (vehicle.vehicle_type === 'locomotive') { iconSrc = '/images/locomotive.svg'; } else { const isFirst = index === 0; const isLast = index === group.vehicles.length - 1; if (isEmu) { if (isFirst) { iconSrc = '/images/wagon_front.svg'; } else if (isLast) { iconSrc = '/images/wagon_rear.svg'; } else { iconSrc = '/images/wagon.svg'; } } else { let isControlCar = false; if (country === 'gb' && vehicle.vehicle_number && vehicle.vehicle_number.startsWith('82')) { isControlCar = true; } else if (country === 'fi' && vehicle.vehicle_number === 'Edo') { isControlCar = true; } if (isControlCar) { if (isFirst) { iconSrc = '/images/wagon_front.svg'; } else if (isLast) { iconSrc = '/images/wagon_rear.svg'; } else { iconSrc = '/images/wagon.svg'; } } else { iconSrc = '/images/wagon.svg'; } } }
+                const vehicleNumHtml = `<span class="vehicle-number">${vehicle.vehicle_number || ''}</span>`;
+                const iconContainer = document.createElement('div'); iconContainer.className = 'vehicle-icon-container';
+                const isFinnishSpecial = country === 'fi' && finnishSpecialSalesNumbers.includes(vehicle.sales_number);
+                const isClosed = vehicle.sales_state === 'closed' || isFinnishSpecial;
+                if (isClosed) { iconContainer.classList.add('is-closed'); }
+                const iconHtml = `<img src="${iconSrc}" class="vehicle-icon" alt="${vehicle.vehicle_type}">`;
+                const salesNumHtml = !isClosed && vehicle.sales_number ? `<span class="sales-number">${vehicle.sales_number}</span>` : '';
+                iconContainer.innerHTML = iconHtml + salesNumHtml;
+                vehicleUnitDiv.innerHTML = vehicleNumHtml; vehicleUnitDiv.appendChild(iconContainer);
+                vehiclesWrapper.appendChild(vehicleUnitDiv);
+              });
+              groupDiv.appendChild(vehiclesWrapper);
+              if (group.group_id) { const groupIdStr = String(group.group_id).trim(); if (groupIdStr.length > 0) { const groupIdSpan = document.createElement('span'); groupIdSpan.className = 'group-id'; groupIdSpan.textContent = groupIdStr; groupDiv.appendChild(groupIdSpan); } }
+              scrollContainer.appendChild(groupDiv);
+            });
+            section.innerHTML = title + meta; section.appendChild(scrollContainer);
+            consistContainer.appendChild(section);
           });
+        } catch (error) { console.error('Failed to fetch train consist data:', error); }
+      };
+
+      // --- Main Execution Block ---
+      try {
+        const [trainResponse, coloursResponse] = await Promise.all([
+          fetch(trainApiUrl).then(res => res.json()),
+          fetch(lineColoursUrl).then(res => res.json())
+        ]);
+        
+        const lineColoursData = coloursResponse;
+
+        if (trainResponse.success && trainResponse.data.length > 0) {
+          const train = trainResponse.data[0];
+          
+          if (train.line_no) {
+            const lineBadge = document.getElementById('line-id-badge');
+            lineBadge.textContent = train.line_no;
+            const countryColours = lineColoursData[country];
+            if (countryColours && countryColours[train.line_no]) {
+              const colour = countryColours[train.line_no];
+              lineBadge.style.backgroundColor = `#${colour}`;
+            }
+            lineBadge.style.display = 'inline-block';
+          }
+          
+          const displayNumber = country === 'gb' && train.headcode ? train.headcode : train.train_number;
+          const firstDeparture = formatTime(train.schedule[0].departure, timezone);
+          trainTitleText.innerText = `${firstDeparture} ${train.origin_name}–${train.destination_name}`;
+          trainSummary.innerText = `${train.train_type} ${displayNumber} | ${window.i18n.operator}: ${train.company}`;
+          
+          const stationNameMap = {};
+          train.schedule.forEach(stop => { if (stop) stationNameMap[stop.station] = stop.name; });
           
           train.schedule.forEach(stop => {
-            if (!stop) return; // Guard clause for null entries
-            if (!stop.commercial_stop) return;
+            if (!stop || !stop.commercial_stop) return;
             const row = document.createElement('tr');
             const arrivalDisplay = displayTime(stop.arrival, stop.estimated_arrival, stop.actual_arrival, timezone);
             const departureDisplay = displayTime(stop.departure, stop.estimated_departure, stop.actual_departure, timezone);
             const status = getStatus(stop);
-            row.innerHTML = `<td>${stop.name}</td><td>${arrivalDisplay}</td><td>${departureDisplay}</td><td>${stop.platform || '—'}</td><td>${status}</td>`;
+            row.innerHTML = `<td>${stop.name}</td><td>${arrivalDisplay}</td><td>${departureDisplay}</td><td>${stop.platform || '–'}</td><td>${status}</td>`;
             scheduleBody.appendChild(row);
           });
           
@@ -218,7 +170,6 @@ block scripts
           const mapContainer = document.getElementById('map');
           const toggleMapBtn = document.getElementById('toggle-map-btn');
           let mapInstance = null;
-
           toggleMapBtn.addEventListener('click', () => {
             const isHidden = mapContainer.style.display === 'none';
             mapContainer.style.display = isHidden ? 'block' : 'none';
@@ -228,11 +179,11 @@ block scripts
           });
 
         } else {
-          trainTitle.innerText = 'Train not found.';
+          document.getElementById('train-title').innerText = 'Train not found.';
         }
       } catch (error) {
         console.error('Failed to fetch train data:', error);
-        trainTitle.innerText = 'Error loading data.';
+        document.getElementById('train-title').innerText = 'Error loading data.';
       }
     });
 

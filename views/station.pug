@@ -40,27 +40,38 @@ block scripts
       const formatTime = (isoString, tz) => { if (!isoString) return '—'; return new Date(isoString).toLocaleTimeString(navigator.language, { hour: '2-digit', minute: '2-digit', timeZone: tz }); };
       const displayTime = (scheduled, estimated, actual, tz) => { if (!scheduled) return '—'; const scheduledTime = formatTime(scheduled, tz); if (actual) { const actualTime = formatTime(actual, tz); if (actualTime !== scheduledTime) { return `<span class="actual">${actualTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } return `<span class="actual">${actualTime}</span>`; } if (estimated) { const estimatedTime = formatTime(estimated, tz); if (estimatedTime !== scheduledTime) { return `<span class="estimated">${estimatedTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } } return `<span>${scheduledTime}</span>`; };
 
-      // Definitive, robust getStatus function
       const getStatus = (stop) => {
+        // If stop is null or not an object, show nothing.
         if (!stop || typeof stop !== 'object') {
-          return `<span class="status-ontime">${window.i18n.onTime}</span>`;
+          return '';
         }
+
+        // If cancelled, always show the "Cancelled" badge.
         if (stop.cancelled_departure || stop.cancelled_arrival) {
           return `<span class="status-cancelled">${window.i18n.cancelled}</span>`;
         }
+
+        // Determine the most definitive real-time data available.
         let finalTime = null;
         let scheduledTime = null;
         if (stop.actual_departure && stop.departure) { finalTime = stop.actual_departure; scheduledTime = stop.departure; } 
         else if (stop.actual_arrival && stop.arrival) { finalTime = stop.actual_arrival; scheduledTime = stop.arrival; } 
         else if (stop.estimated_departure && stop.departure) { finalTime = stop.estimated_departure; scheduledTime = stop.departure; } 
         else if (stop.estimated_arrival && stop.arrival) { finalTime = stop.estimated_arrival; scheduledTime = stop.arrival; }
+
+        // If NO real-time data was found, show nothing.
         if (!finalTime || !scheduledTime) {
-          return `<span class="status-ontime">${window.i18n.onTime}</span>`;
+          return '';
         }
+
+        // If we have real-time data, calculate the delay.
         const delay = Math.floor((new Date(finalTime) - new Date(scheduledTime)) / 60000);
+
+        // Apply the 5-minute tolerance window.
         if (delay >= 5) {
           return `<span class="status-delayed">${window.i18n.delayed} ${delay} ${window.i18n.minutes}</span>`;
         } else {
+          // If real-time data exists and delay is < 5 mins, show "On time".
           return `<span class="status-ontime">${window.i18n.onTime}</span>`;
         }
       };
@@ -99,7 +110,7 @@ block scripts
               <td>${train.destination_name}</td>
               <td>${arrivalDisplay}</td>
               <td>${departureDisplay}</td>
-              <td>${train.platform || '—'}</td>
+              <td>${train.platform || '–'}</td>
               <td>${status}</td>
             `;
             timetableBody.appendChild(row);

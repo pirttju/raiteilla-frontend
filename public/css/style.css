@@ -365,3 +365,26 @@ a.nav-link:hover {
   background-color: #0056b3;
 }
 
+/* =================================== */
+/* Line ID Badge Styles                */
+/* =================================== */
+
+/* This makes the h1 a flex container to vertically align the badge and text */
+#train-title {
+  display: flex;
+  align-items: center;
+}
+
+.line-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-weight: bold;
+  font-family: sans-serif;
+  color: #ffffff; /* White text by default */
+  background-color: #343a40; /* Default dark background */
+  margin-right: 10px; /* Space between badge and title text */
+  text-align: center;
+  min-width: 40px; /* Ensures small line IDs have some width */
+}
