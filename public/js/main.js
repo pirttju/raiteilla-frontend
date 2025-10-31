@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     stationResponses.forEach((res) => {
       if (res.success) {
         const visibleStations = res.data.filter(
-          (station) => !station.is_hidden
+          (station) => !station.is_hidden && station.type === "station"
         );
         stations.push(...visibleStations);
       }
@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   fetchAllData();
 
-  // This allows us to search both 'train_number' and 'headcode' for trains.
+  // Now includes country-specific logic for train searches.
   const getScoredMatches = (items, query, keys) => {
     const scoredItems = items.map((item) => {
       let maxScore = 0; // Find the best score across all keys for this item
@@ -54,6 +54,20 @@ document.addEventListener("DOMContentLoaded", () => {
       keys.forEach((key) => {
         // Check if the item actually has this property
         if (!item[key]) return;
+
+        // Country-specific search logic for trains
+        // This logic applies only when the item is a train (has a 'feed' property)
+        if (item.feed) {
+          // For UK (gb) trains, only match against 'headcode'
+          if (item.feed === "gb" && key !== "headcode") {
+            return; // Skip this key and continue to the next one
+          }
+          // For all other trains, only match against 'train_number'
+          if (item.feed !== "gb" && key !== "train_number") {
+            return; // Skip this key
+          }
+        }
+        // For non-train items (stations), this block is skipped, and all provided keys are used.
 
         const value = item[key].toString().toLowerCase();
         let currentScore = 0;
@@ -89,7 +103,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Search stations by 'name', and trains by 'train_number' AND 'headcode'
     const stationMatches = getScoredMatches(stations, query, ["name"]).slice(
       0,
       5
@@ -109,7 +122,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const today = new Date().toISOString().slice(0, 10);
     const flagMap = { fi: "🇫🇮", se: "🇸🇪", no: "🇳🇴", gb: "🇬🇧" };
 
-    // Display train matches first
     trainMatches.forEach((train) => {
       const div = document.createElement("div");
       const displayNumber =
@@ -127,7 +139,6 @@ document.addEventListener("DOMContentLoaded", () => {
       suggestions.appendChild(div);
     });
 
-    // Display station matches second
     stationMatches.forEach((station) => {
       const div = document.createElement("div");
       div.textContent = `${flagMap[station.feed_id] || "•"} ${station.name} (${
