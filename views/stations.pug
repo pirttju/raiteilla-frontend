@@ -37,7 +37,7 @@ block scripts
           countryHeader.textContent = countryNames[country];
           container.appendChild(countryHeader);
 
-          let locationsToRender = countryData.data;
+          let locationsToRender = countryData.data.filter(loc => !loc.is_hidden);
           if (!showAll) {
             locationsToRender = locationsToRender.filter(loc => loc.type === 'station');
           }

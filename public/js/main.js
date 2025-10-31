@@ -25,7 +25,12 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     const stationResponses = await Promise.all(stationPromises);
     stationResponses.forEach((res) => {
-      if (res.success) stations.push(...res.data);
+      if (res.success) {
+        const visibleStations = res.data.filter(
+          (station) => !station.is_hidden
+        );
+        stations.push(...visibleStations);
+      }
     });
     const trainResponses = await Promise.all(trainPromises);
     trainResponses.forEach((response) => {
