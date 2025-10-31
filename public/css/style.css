@@ -264,6 +264,23 @@ a.nav-link:hover {
   width: 96px;
   height: 48px;
   transition: width 0.2s ease-in-out, height 0.2s ease-in-out;
+  overflow: hidden;
+}
+
+.vehicle-icon-container.is-closed::after {
+  content: '🚫'; /* The "no entry" emoji */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5em;
+  background-color: rgba(255, 255, 255, 0.7);
+  z-index: 5;
+  transition: font-size 0.2s ease-in-out;
 }
 
 .vehicle-icon {
@@ -316,6 +333,10 @@ a.nav-link:hover {
 
   .sales-number {
     font-size: 0.825em;
+  }
+
+  .vehicle-icon-container.is-closed::after {
+    font-size: 1em;
   }
 }
 

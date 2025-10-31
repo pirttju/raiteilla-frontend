@@ -115,6 +115,12 @@ block scripts
                 const vehicleNumHtml = `<span class="vehicle-number">${vehicle.vehicle_number || ''}</span>`;
                 const iconContainer = document.createElement('div');
                 iconContainer.className = 'vehicle-icon-container';
+                
+                // Add the 'is-closed' class if the sales_state matches
+                if (vehicle.sales_state === 'closed') {
+                  iconContainer.classList.add('is-closed');
+                }
+
                 const iconHtml = `<img src="${iconSrc}" class="vehicle-icon" alt="${vehicle.vehicle_type}">`;
                 const salesNumHtml = vehicle.sales_number ? `<span class="sales-number">${vehicle.sales_number}</span>` : '';
                 iconContainer.innerHTML = iconHtml + salesNumHtml;
