@@ -3,10 +3,15 @@ extends layout
 block content
   // The h1's data- attributes are critical for passing server data to the client script.
   h1#station-title(data-country=country data-station=station data-date=date)= `${t('Timetable for')} ${station}`
-  
+
   // This div is the placeholder for the station's metadata (Identifier, Kilometer Marker, etc.)
   div#station-details.station-meta
-  
+
+  // Date navigation buttons
+  div.date-navigation
+    button#prev-day-btn= t('Previous day')
+    button#next-day-btn= t('Next day')
+
   table
     thead
       tr
@@ -32,6 +37,33 @@ block scripts
       const timetableBody = document.getElementById('timetable-body');
       const noTrainsMessage = document.getElementById('no-trains-message');
 
+      // Button and Navigation Logic
+      const prevDayBtn = document.getElementById('prev-day-btn');
+      const nextDayBtn = document.getElementById('next-day-btn');
+
+      // Helper function to format a Date object to 'YYYY-MM-DD'
+      const formatDate = (date) => date.toISOString().split('T')[0];
+
+      // Use UTC to avoid timezone issues when calculating dates
+      const currentDate = new Date(`${date}T00:00:00Z`);
+
+      const prevDay = new Date(currentDate);
+      prevDay.setUTCDate(currentDate.getUTCDate() - 1);
+      const prevDateStr = formatDate(prevDay);
+
+      const nextDay = new Date(currentDate);
+      nextDay.setUTCDate(currentDate.getUTCDate() + 1);
+      const nextDateStr = formatDate(nextDay);
+      
+      // Add event listeners to navigate
+      prevDayBtn.addEventListener('click', () => {
+        window.location.href = `/station/${country}/${stationCode}/${prevDateStr}`;
+      });
+
+      nextDayBtn.addEventListener('click', () => {
+        window.location.href = `/station/${country}/${stationCode}/${nextDateStr}`;
+      });
+
       const timetableApiUrl = `/train-api/v1/stations/${country}/${stationCode}/${date}`;
       const stationInfoApiUrl = `/train-api/v1/stations/${country}/${stationCode}`;
 
@@ -46,8 +78,15 @@ block scripts
           return '';
         }
 
-        // If cancelled, always show the "Cancelled" badge.
-        if (stop.cancelled_departure || stop.cancelled_arrival) {
+        // A train is terminating if it's scheduled to arrive but not depart.
+        const isTerminatingTrain = stop.arrival && !stop.departure;
+
+        // Show "Cancelled" if the departure is cancelled...
+        if (stop.cancelled_departure) {
+          return `<span class="status-cancelled">${window.i18n.cancelled}</span>`;
+        }
+        // ...or if it's a terminating train and its arrival is cancelled.
+        if (isTerminatingTrain && stop.cancelled_arrival) {
           return `<span class="status-cancelled">${window.i18n.cancelled}</span>`;
         }
 

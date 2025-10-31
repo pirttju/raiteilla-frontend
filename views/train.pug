@@ -48,30 +48,59 @@ block scripts
       const displayTime = (scheduled, estimated, actual, tz) => { if (!scheduled) return '–'; const scheduledTime = formatTime(scheduled, tz); if (actual) { const actualTime = formatTime(actual, tz); if (actualTime !== scheduledTime) { return `<span class="actual">${actualTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } return `<span class="actual">${actualTime}</span>`; } if (estimated) { const estimatedTime = formatTime(estimated, tz); if (estimatedTime !== scheduledTime) { return `<span class="estimated">${estimatedTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } } return `<span>${scheduledTime}</span>`; };
 
       const getStatus = (stop) => {
-        // If stop is null or not an object, show nothing.
         if (!stop || typeof stop !== 'object') {
           return '';
         }
 
-        // If cancelled, always show the "Cancelled" badge.
-        if (stop.cancelled_departure || stop.cancelled_arrival) {
+        const hasArrival = !!stop.arrival;
+        const hasDeparture = !!stop.departure;
+
+        // Determine if the entire stop is effectively cancelled for a passenger.
+        let isEffectivelyCancelled = false;
+        if (hasArrival && stop.cancelled_arrival && hasDeparture && stop.cancelled_departure) {
+          isEffectivelyCancelled = true; // Intermediate stop where both are cancelled.
+        } else if (hasArrival && !hasDeparture && stop.cancelled_arrival) {
+          isEffectivelyCancelled = true; // Terminating stop where arrival is cancelled.
+        } else if (!hasArrival && hasDeparture && stop.cancelled_departure) {
+          isEffectivelyCancelled = true; // Originating stop where departure is cancelled.
+        }
+
+        if (isEffectivelyCancelled) {
           return `<span class="status-cancelled">${window.i18n.cancelled}</span>`;
         }
 
-        // Determine the most definitive real-time data available.
-        let finalTime = null; let scheduledTime = null;
-        if (stop.actual_departure && stop.departure) { finalTime = stop.actual_departure; scheduledTime = stop.departure; } 
-        else if (stop.actual_arrival && stop.arrival) { finalTime = stop.actual_arrival; scheduledTime = stop.arrival; } 
-        else if (stop.estimated_departure && stop.departure) { finalTime = stop.estimated_departure; scheduledTime = stop.departure; } 
-        else if (stop.estimated_arrival && stop.arrival) { finalTime = stop.estimated_arrival; scheduledTime = stop.arrival; }
-        // If NO real-time data was found, show nothing.
+        // If not fully cancelled, calculate delay based on the part of the stop that is still running.
+        let finalTime = null;
+        let scheduledTime = null;
+
+        // Prioritize departure info if it exists and is not cancelled.
+        if (hasDeparture && !stop.cancelled_departure) {
+          if (stop.actual_departure) {
+            finalTime = stop.actual_departure;
+            scheduledTime = stop.departure;
+          } else if (stop.estimated_departure) {
+            finalTime = stop.estimated_departure;
+            scheduledTime = stop.departure;
+          }
+        }
+        // Otherwise, use arrival info if it exists and is not cancelled.
+        else if (hasArrival && !stop.cancelled_arrival) {
+          if (stop.actual_arrival) {
+            finalTime = stop.actual_arrival;
+            scheduledTime = stop.arrival;
+          } else if (stop.estimated_arrival) {
+            finalTime = stop.estimated_arrival;
+            scheduledTime = stop.arrival;
+          }
+        }
+
+        // If there's no real-time data for the valid part of the stop, show nothing.
         if (!finalTime || !scheduledTime) {
           return '';
         }
 
-        // If we have real-time data, calculate the delay.
+        // Calculate and display the delay.
         const delay = Math.floor((new Date(finalTime) - new Date(scheduledTime)) / 60000);
-        // Apply the 5-minute tolerance window.
         if (delay >= 5) {
           return `<span class="status-delayed">${window.i18n.delayed} ${delay} ${window.i18n.minutes}</span>`;
         } else {

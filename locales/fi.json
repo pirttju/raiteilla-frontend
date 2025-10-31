@@ -5,6 +5,8 @@
   "Station": "Asema",
   "Train": "Juna",
   "Timetable for": "Aikataulu asemalle",
+  "Previous day": "Edellinen päivä",
+  "Next day": "Seuraava päivä",
   "Origin": "Lähtöasema",
   "Destination": "Määräasema",
   "Arrival": "Saapuu",
