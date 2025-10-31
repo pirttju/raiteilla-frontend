@@ -243,15 +243,15 @@ a.nav-link:hover {
 /* =================================== */
 
 .consist-section {
-  margin-top: 2rem;
-  margin-bottom: 2rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
   border: 1px solid #dee2e6;
   border-radius: 5px;
-  padding: 1rem;
+  padding: 0.5rem;
 }
 .consist-section h2 { margin-top: 0; font-size: 1.1em; }
-.consist-meta { font-size: 0.9em; color: #555; margin-bottom: 1rem; }
-.consist-scroll-container { overflow-x: auto; padding-bottom: 15px; display: flex; flex-direction: row; align-items: flex-start; gap: 6px; padding-left: 1px; }
+.consist-meta { font-size: 0.9em; color: #555; margin-bottom: 0.5rem; }
+.consist-scroll-container { overflow-x: auto; display: flex; flex-direction: row; align-items: flex-start; gap: 6px; padding-left: 1px; }
 .consist-group { display: flex; flex-direction: column; align-items: center; }
 .vehicles-wrapper { display: flex; flex-direction: row; align-items: flex-end; }
 .vehicle-unit { display: flex; flex-direction: column; align-items: center; text-align: center; width: 96px; }
