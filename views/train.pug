@@ -80,7 +80,6 @@ block scripts
       };
 
       const fetchAndRenderConsist = async (trainType, stationNameMap) => {
-        if (!['gb', 'fi', 'no'].includes(country)) { return; }
         const consistContainer = document.getElementById('consist-container');
         const allocationsApiUrl = `/train-api/v1/allocations/${country}/${date}/${trainNumber}`;
         try {
