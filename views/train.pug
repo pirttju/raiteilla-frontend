@@ -139,11 +139,15 @@ block scripts
               
               groupDiv.appendChild(vehiclesWrapper);
 
-              if (group.group_id && group.group_id.trim().length > 0) {
-                const groupIdSpan = document.createElement('span');
-                groupIdSpan.className = 'group-id';
-                groupIdSpan.textContent = group.group_id.trim();
-                groupDiv.appendChild(groupIdSpan);
+              if (group.group_id) {
+                const groupIdStr = String(group.group_id).trim();
+
+                if (groupIdStr.length > 0) {
+                  const groupIdSpan = document.createElement('span');
+                  groupIdSpan.className = 'group-id';
+                  groupIdSpan.textContent = groupIdStr; // Use the cleaned string
+                  groupDiv.appendChild(groupIdSpan);
+                }
               }
 
               scrollContainer.appendChild(groupDiv);
