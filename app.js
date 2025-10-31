@@ -9,6 +9,7 @@ const Backend = require("i18next-fs-backend");
 
 const indexRouter = require("./routes/index");
 const apiRouter = require("./routes/api");
+const favicon = require("serve-favicon");
 
 const app = express();
 
@@ -39,6 +40,8 @@ i18next
 // View engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
+
+app.use(favicon(path.join(__dirname, "public", "favicon.ico")));
 
 app.use(i18nextMiddleware.handle(i18next));
 
