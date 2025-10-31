@@ -53,6 +53,9 @@ block scripts
 
           if (!result.success || result.data.length === 0) return;
 
+          // Define the array of special Finnish sales numbers here
+          const finnishSpecialSalesNumbers = ['990', '991', '992', '993', '994', '995', '996', '997', '998', '999'];
+
           result.data.forEach(allocation => {
             const section = document.createElement('div');
             section.className = 'consist-section';
@@ -116,8 +119,10 @@ block scripts
                 const iconContainer = document.createElement('div');
                 iconContainer.className = 'vehicle-icon-container';
                 
-                // Add the 'is-closed' class if the sales_state matches
-                if (vehicle.sales_state === 'closed') {
+                // Check for the generic "closed" state OR the specific Finnish sales numbers.
+                const isFinnishSpecial = country === 'fi' && finnishSpecialSalesNumbers.includes(vehicle.sales_number);
+                
+                if (vehicle.sales_state === 'closed' || isFinnishSpecial) {
                   iconContainer.classList.add('is-closed');
                 }
 

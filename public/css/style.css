@@ -254,7 +254,7 @@ a.nav-link:hover {
 .consist-scroll-container { overflow-x: auto; padding-bottom: 15px; display: flex; flex-direction: row; align-items: flex-start; gap: 6px; padding-left: 1px; }
 .consist-group { display: flex; flex-direction: column; align-items: center; }
 .vehicles-wrapper { display: flex; flex-direction: row; align-items: flex-end; }
-.vehicle-unit { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.vehicle-unit { display: flex; flex-direction: column; align-items: center; text-align: center; width: 96px; }
 
 .vehicle-icon-container {
   position: relative;
@@ -295,6 +295,7 @@ a.nav-link:hover {
   margin-bottom: 4px;
   height: 1.2em;
   transition: font-size 0.2s ease-in-out;
+  word-break: break-all;
 }
 
 .sales-number {
@@ -321,7 +322,7 @@ a.nav-link:hover {
   padding-top: 3px;
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1080px) {
   .vehicle-icon-container {
     width: 64px;
     height: 32px;
@@ -337,6 +338,10 @@ a.nav-link:hover {
 
   .vehicle-icon-container.is-closed::after {
     font-size: 1em;
+  }
+
+  .vehicle-unit {
+    width: 64px;
   }
 }
 
