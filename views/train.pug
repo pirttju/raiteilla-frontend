@@ -123,17 +123,13 @@ block scripts
             const title = `<h2>${window.i18n.trainConsist} (${beginName}–${endName})</h2>`;
             const metaParts = [];
 
-            // Add length if it exists, with a space before "m"
             if (allocation.total_length) {
               metaParts.push(`${window.i18n.totalLength}: ${allocation.total_length} m`);
             }
-
-            // Add max speed ONLY if it's greater than 0, with a space before "km/h"
             if (allocation.maximum_speed > 0) {
               metaParts.push(`${window.i18n.maxSpeed}: ${allocation.maximum_speed} km/h`);
             }
 
-            // Join the parts and wrap them in the <p> tag
             const meta = `<p class="consist-meta">${metaParts.join(' | ')}</p>`;
             const scrollContainer = document.createElement('div'); scrollContainer.className = 'consist-scroll-container';
             const isEmu = allocation.groups.every(group => group.vehicles.every(vehicle => vehicle.vehicle_type === 'wagon'));
@@ -143,7 +139,38 @@ block scripts
               group.vehicles.forEach((vehicle, index) => {
                 const vehicleUnitDiv = document.createElement('div'); vehicleUnitDiv.className = 'vehicle-unit';
                 let iconSrc = '';
-                if (vehicle.vehicle_type === 'locomotive') { iconSrc = '/images/locomotive.svg'; } else { const isFirst = index === 0; const isLast = index === group.vehicles.length - 1; if (isEmu) { if (isFirst) { iconSrc = '/images/wagon_front.svg'; } else if (isLast) { iconSrc = '/images/wagon_rear.svg'; } else { iconSrc = '/images/wagon.svg'; } } else { let isControlCar = false; if (country === 'gb' && vehicle.vehicle_number && vehicle.vehicle_number.startsWith('82')) { isControlCar = true; } else if (country === 'fi' && vehicle.vehicle_number === 'Edo') { isControlCar = true; } if (isControlCar) { if (isFirst) { iconSrc = '/images/wagon_front.svg'; } else if (isLast) { iconSrc = '/images/wagon_rear.svg'; } else { iconSrc = '/images/wagon.svg'; } } else { iconSrc = '/images/wagon.svg'; } } }
+
+                // Icon logic
+                if (vehicle.vehicle_type === 'locomotive') {
+                  iconSrc = '/images/locomotive.svg';
+                } else {
+                  // If the group has only one vehicle, it's a single unit (e.g., a railcar).
+                  if (group.vehicles.length === 1) {
+                    iconSrc = '/images/wagon_round.svg';
+                  } else {
+                    // Otherwise, use the existing logic for multi-vehicle sets.
+                    const isFirst = index === 0;
+                    const isLast = index === group.vehicles.length - 1;
+                    if (isEmu) {
+                      if (isFirst) { iconSrc = '/images/wagon_front.svg'; } 
+                      else if (isLast) { iconSrc = '/images/wagon_rear.svg'; } 
+                      else { iconSrc = '/images/wagon.svg'; }
+                    } else {
+                      let isControlCar = false;
+                      if (country === 'gb' && vehicle.vehicle_number && vehicle.vehicle_number.startsWith('82')) { isControlCar = true; } 
+                      else if (country === 'fi' && vehicle.vehicle_number === 'Edo') { isControlCar = true; }
+                      
+                      if (isControlCar) {
+                        if (isFirst) { iconSrc = '/images/wagon_front.svg'; } 
+                        else if (isLast) { iconSrc = '/images/wagon_rear.svg'; } 
+                        else { iconSrc = '/images/wagon.svg'; }
+                      } else {
+                        iconSrc = '/images/wagon.svg';
+                      }
+                    }
+                  }
+                }
+
                 const vehicleNumHtml = `<span class="vehicle-number">${vehicle.vehicle_number || ''}</span>`;
                 const iconContainer = document.createElement('div'); iconContainer.className = 'vehicle-icon-container';
                 const isFinnishSpecial = country === 'fi' && finnishSpecialSalesNumbers.includes(vehicle.sales_number);
