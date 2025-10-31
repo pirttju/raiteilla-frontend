@@ -40,7 +40,7 @@ block scripts
       const displayTime = (scheduled, estimated, actual, tz) => { if (!scheduled) return '—'; const scheduledTime = formatTime(scheduled, tz); if (actual) { const actualTime = formatTime(actual, tz); if (actualTime !== scheduledTime) { return `<span class="actual">${actualTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } return `<span class="actual">${actualTime}</span>`; } if (estimated) { const estimatedTime = formatTime(estimated, tz); if (estimatedTime !== scheduledTime) { return `<span class="estimated">${estimatedTime}</span><br><s class="scheduled">${scheduledTime}</s>`; } } return `<span>${scheduledTime}</span>`; };
       
       const fetchAndRenderConsist = async (trainType, stationNameMap) => {
-        if (country !== 'gb' || !['XX', 'OO', 'EE'].includes(trainType)) {
+        if (!['gb', 'fi', 'no'].includes(country)) {
           return;
         }
 
@@ -89,18 +89,23 @@ block scripts
                   const isLast = index === group.vehicles.length - 1;
                   
                   if (isEmu) {
-                    // Handle EMU wagons
                     if (isFirst) { iconSrc = '/images/wagon_front.svg'; }
                     else if (isLast) { iconSrc = '/images/wagon_rear.svg'; }
                     else { iconSrc = '/images/wagon.svg'; }
-                  } else {
-                    // Handle driving van trailers on loco-hauled trains
-                    const isDvt = vehicle.vehicle_number && vehicle.vehicle_number.startsWith('82');
+                  } else { // It's a loco-hauled train
+                    let isControlCar = false;
                     
-                    if (isDvt) {
+                    // Country-specific logic for control cars
+                    if (country === 'gb' && vehicle.vehicle_number && vehicle.vehicle_number.startsWith('82')) {
+                      isControlCar = true;
+                    } else if (country === 'fi' && vehicle.vehicle_number === 'Edo') {
+                      isControlCar = true;
+                    }
+                    
+                    if (isControlCar) {
                       if (isFirst) { iconSrc = '/images/wagon_front.svg'; }
                       else if (isLast) { iconSrc = '/images/wagon_rear.svg'; }
-                      else { iconSrc = '/images/wagon.svg'; } // DVT in the middle
+                      else { iconSrc = '/images/wagon.svg'; } // Control car in the middle
                     } else {
                       iconSrc = '/images/wagon.svg'; // It's a normal wagon
                     }
